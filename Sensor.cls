@@ -23,3 +23,8 @@ Public NotInstalled    As Boolean
     
 Public Value           As String
 
+Public Avg              As Integer
+Public SD               As Integer
+Public Min              As Integer
+Public Max              As Integer
+

@@ -1,199 +1,51 @@
 Attribute VB_Name = "读取"
-Public Type NomadSensor
-    Height      As Single
-    Description As String
-    Units       As String
-    Cat         As String
-End Type
 
-Private reISH As Object ' info sensor height
-Private re1 As Object   ' 判断时间正则1:
-Private re2 As Object   ' 判断时间正则2:
 
+Public reISH    As Object   ' info sensor height
+Public re1      As Object   ' 判断时间正则1:
+Public re2      As Object   ' 判断时间正则2:
 
 
 Sub 读取数据()
     initRead
+    
+    Dim s, fs As Object
+    Set fs = ActiveSheet
 
-    Dim i As Integer
-    For i = 1 To Sheets.Count
-        If InStr(1, Sheets(i).Name, "raw", 1) > 0 Then
-            Sheets(i).Select
+    For Each s In Sheets
+        If InStr(1, s.Name, "raw", 1) > 0 Then
+            s.Select
 
             decRaw
-            
         End If
-    Next i
+    Next
 
+    fs.Select
+    
 End Sub
 
 ' 设定正则
 Function initRead()
     Set reISH = CreateObject("vbscript.regexp")
-    With reISH
-       .Global = True
-       .Pattern = "^([\d\.]+)\s*(m|ft)"
-    End With
+    reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
 
     Set re1 = CreateObject("vbscript.regexp")
-    With re1
-       .Global = True
-       .Pattern = "(\d{4})[\/|-](\d{1,2})[\/|-](\d{1,2})(\s\w+|)\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
-    End With
-    
+    re1.Pattern = "(\d{4})[\/|-](\d{1,2})[\/|-](\d{1,2})(\s\w+|)\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
+
     Set re2 = CreateObject("vbscript.regexp")
-    With re2
-       .Global = True
-       .Pattern = "(\d{4})[\/|-](\d{1,2})[\/|-](\d{1,2})(\s\w+|)\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
-    End With
-    
+    re2.Pattern = "(\d{1,2})[\/|-](\d{1,2})[\/|-](\d{4})\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
 End Function
 
 Function decRaw()
-    Dim id As String
+    Dim v
+    v = Range("A1").Value
     
-    If InStr(1, Cells(1, 1).Value, "SDR", 1) > 0 Then
-        id = decInfoSDR
-        
-        decDataSDR id
-    ElseIf InStr(1, Cells(1, 1).Value, "Multi-Track Export -", 1) > 0 Then
-        id = decInfoNomad
+    If InStr(1, v, "SDR", 1) > 0 Then
+        decDataSDR decInfoSDR
+    ElseIf InStr(1, v, "Multi-Track Export -", 1) > 0 Then
+        decDataNomad decInfoNomad
     End If
-    
-    
-End Function
 
-
-' SDR 格式信息提取
-
-Function decInfoSDR() As String
-    Dim s As New Station
-    Dim ss As Sensor
-    
-    s.System = "SDR"
-    s.Version = Cells(1, 2).Value
-    
-    Dim sensors(1 To MaxSensorNum) As Sensor
-    Dim ssIndex As Integer
-    ssIndex = 1
-    
-    Dim i As Single
-    For i = 1 To ActiveSheet.UsedRange.Rows.Count
-        If InStr(1, Cells(i, 1).Value, "Channel", 1) > 0 Then
-        
-            Set ss = New Sensor
-            With ss
-                .Channel = Cells(i, 2).Value
-                .Cat = Cells(i + 1, 2).Value
-                .Description = Cells(i + 2, 2).Value
-                .Details = Cells(i + 3, 2).Value
-                .SerialNumber = Cells(i + 4, 2).Value
-                .ScaleFactor = Cells(i + 6, 2).Value
-                .Offset = Cells(i + 7, 2).Value
-                .Units = Cells(i + 8, 2).Value
-            End With
-            
-            If Len(ss.Channel) < 1 Then
-                Call Error("传感器Channel号为空")
-            End If
-            
-            Select Case ss.Units
-                Case "", "-----", "unit"
-                    ss.NotInstalled = True
-                Case Else
-                    ss.NotInstalled = False
-            End Select
-            
-            Set myMatches = reISH.Execute(Cells(i + 5, 2).Value)
-            If myMatches.Count >= 1 Then
-                Set myMatch = myMatches(0)
-                If myMatch.SubMatches.Count >= 2 Then
-                    ss.Height = myMatch.SubMatches(0)
-        
-                    If myMatch.SubMatches(1) = "ft" Then
-                        ss.Height = ss.Height * 0.3048
-                    End If
-                End If
-            End If
-            
-            s.SensorsR.add CStr(i), ss
-            ssIndex = ssIndex + 1
-            i = i + 8
-        ElseIf InStr(1, Cells(i, 1).Value, "Logger", 1) > 0 Then
-            Set s.Logger = New Logger
-            With s.Logger
-                .Model = Cells(i + 1, 2).Value
-                .Serial = Cells(i + 2, 2).Value
-                .HardwareRev = Cells(i + 3, 2).Value
-            End With
-            i = i + 3
-        ElseIf InStr(1, Cells(i, 1).Value, "Site", 1) > 0 Then
-            Set s.Site = New Site
-            With s.Site
-                .Site = Cells(i + 1, 2).Value
-                .SiteDesc = Cells(i + 2, 2).Value
-                .ProjectCode = Cells(i + 3, 2).Value
-                .ProjectDesc = Cells(i + 4, 2).Value
-                .SiteLocation = Cells(i + 5, 2).Value
-                .SiteElevation = Cells(i + 6, 2).Value
-                .Latitude = Cells(i + 7, 2).Value
-                .Longitude = Cells(i + 8, 2).Value
-                .TimeOffset = Cells(i + 9, 2).Value
-            End With
-
-            i = i + 9
-        ElseIf InStr(1, Cells(i, 1).Value, "Date", 1) > 0 Then
-            s.DataStart = i + 1
-            Exit For
-        End If
-    
-    Next i
-    
-    s.id = s.Site.Site
-    
-    addStation s
-
-    decInfoSDR = s.id
-    
-End Function
-
-Function getSensor(i As Single) As Sensor
-    Dim ss As New Sensor
-    With ss
-        .Channel = Cells(i, 2).Value
-        .Cat = Cells(i + 1, 2).Value
-        .Description = Cells(i + 2, 2).Value
-        .Details = Cells(i + 3, 2).Value
-        .SerialNumber = Cells(i + 4, 2).Value
-        .ScaleFactor = Cells(i + 6, 2).Value
-        .Offset = Cells(i + 7, 2).Value
-        .Units = Cells(i + 8, 2).Value
-    End With
-    
-    If Len(ss.Channel) < 1 Then
-        Call Error("传感器Channel号为空")
-    End If
-    
-    Select Case ss.Units
-        Case "", "-----", "unit"
-            ss.NotInstalled = True
-        Case Else
-            ss.NotInstalled = False
-    End Select
-    
-    Set myMatches = reISH.Execute(Cells(i + 5, 2).Value)
-    If myMatches.Count >= 1 Then
-        Set myMatch = myMatches(0)
-        If myMatch.SubMatches.Count >= 2 Then
-            ss.Height = myMatch.SubMatches(0)
-
-            If myMatch.SubMatches(1) = "ft" Then
-                ss.Height = ss.Height * 0.3048
-            End If
-        End If
-    End If
-    
-    Set getSensor = ss
 End Function
 
 Function addStation(s As Station)
@@ -205,7 +57,7 @@ Function addStation(s As Station)
         End If
     End If
     
-    Info "新增站点: " + CStr(s.id)
+    Info "新增站点: " + s.id
     Stations.add s.id, s
     
     showInfo s
@@ -313,64 +165,21 @@ Function addInfoSensor(i As Integer, c As String, h As Single, t As String)
     Range("C" + CStr(i)).Value = t
 End Function
 
-Function decDataSDR(id As String)
-    Dim maxX, maxY
-    maxX = ActiveSheet.UsedRange.Rows.Count
-    maxY = ActiveSheet.UsedRange.Columns.Count
-    
-    Dim x As String, y As String
-    x = Cells(Stations(id).DataStart - 1, 1).Address
-    y = Cells(maxX, maxY).Address
-
-    ActiveSheet.Range(x + ":" + y).Copy
-    Sheets.add After:=Sheets(Sheets.Count)
-    ActiveSheet.Paste
-    Range("A1").Select
-    
-    ' 调整日期格式
-    
-    Dim i
-    For i = 2 To ActiveSheet.UsedRange.Rows.Count
-        Cells(i, 1).Value = decDate(Cells(i, 1).Value)
-    Next i
-    
-
-    
-    maxX = ActiveSheet.UsedRange.Rows.Count
-    maxY = ActiveSheet.UsedRange.Columns.Count
-    x = Cells(2, maxY + 1).Address
-    y = Cells(maxX, maxY + 1).Address
-    
-    Cells(2, maxY + 1).Formula = "=MINUTE(A2)"
-    Cells(2, maxY + 1).AutoFill Destination:=Range(x + ":" + y)
-
-    Cells(1, maxY + 1).Formula = "=AVERAGE(" + CStr(x) + ":" + CStr(y) + ")"
-    
-    If Cells(1, maxY + 1).Value > 1 Then
-        ActiveSheet.Name = "data-" + id + "-10m"
-    Else
-        ActiveSheet.Name = "data-" + id + "-1h"
-    End If
-    
-    
-End Function
-
-
 Function decDate(str As String) As String
-    Set myMatches = re1.Execute(str)
-    If myMatches.Count >= 1 Then
-        Set myMatch = myMatches(0)
-        If myMatch.SubMatches.Count >= 6 Then
-            decDate = newDate(myMatch.SubMatches(0), myMatch.SubMatches(1), myMatch.SubMatches(2), myMatch.SubMatches(4), myMatch.SubMatches(5))
+    Set mymatches = re1.Execute(str)
+    If mymatches.Count >= 1 Then
+        Set mymatch = mymatches(0)
+        If mymatch.SubMatches.Count >= 6 Then
+            decDate = newDate(mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(2), mymatch.SubMatches(4), mymatch.SubMatches(5))
             Exit Function
         End If
     End If
     
-    Set myMatches = re2.Execute(str)
-    If myMatches.Count >= 1 Then
-        Set myMatch = myMatches(0)
-        If myMatch.SubMatches.Count >= 6 Then
-            decDate = newDate(myMatch.SubMatches(2), myMatch.SubMatches(0), myMatch.SubMatches(1), myMatch.SubMatches(3), myMatch.SubMatches(4))
+    Set mymatches = re2.Execute(str)
+    If mymatches.Count >= 1 Then
+        Set mymatch = mymatches(0)
+        If mymatch.SubMatches.Count >= 6 Then
+            decDate = newDate(mymatch.SubMatches(2), mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(3), mymatch.SubMatches(4))
             Exit Function
         End If
     End If
@@ -379,19 +188,49 @@ Function decDate(str As String) As String
     
 End Function
 
-Function newDate(y As Integer, mo As Integer, d As Integer, h As Integer, min As Integer) As String
-    newDate = CStr(y) + "/" + CStr(mo) + "/" + CStr(d) + " " + CStr(h) + ":" + CStr(min)
+Function newDate(y As Integer, mo As Integer, d As Integer, h As Integer, Min As Integer) As String
+    newDate = CStr(y) + "/" + CStr(mo) + "/" + CStr(d) + " " + CStr(h) + ":" + CStr(Min)
 End Function
 
+Function adjustData(id As String)
+    ' 需要激活sheet
+    ''''''''''''''''
 
-' Nomad 格式信息提取
-
-Function decInfoNomad()
-    Dim s As Station
-    s.System = "Nomad"
+    ' 调整日期格式
     
+    Dim i
+    For i = 2 To ActiveSheet.UsedRange.Rows.Count
+        Cells(i, 1).Value = decDate(Cells(i, 1).Value)
+    Next i
+    
+    ' 判断是10分钟还是60分钟数据
+    
+    Dim maxX, maxY
+    maxX = ActiveSheet.UsedRange.Rows.Count
+    maxY = ActiveSheet.UsedRange.Columns.Count
+    
+    Dim x As String, y As String
+    x = Cells(2, maxY + 1).Address
+    y = Cells(maxX, maxY + 1).Address
+    
+    Cells(2, maxY + 1).Formula = "=MINUTE(A2)"
+    Cells(2, maxY + 1).AutoFill Destination:=Range(x + ":" + y)
 
-
+    Cells(1, maxY + 1).Formula = "=AVERAGE(" + CStr(x) + ":" + CStr(y) + ")"
+    
+    Dim n As String
+    If Cells(1, maxY + 1).Value > 1 Then
+        n = "data-" + id + "-10m"
+    Else
+        n = "data-" + id + "-1h"
+    End If
+    If sheetExist(n) Then
+        Sheets(n).Delete
+    End If
+    ActiveSheet.Name = n
+    
+    Range(Cells(1, maxY + 1).Address + ":" + Cells(maxX, maxY + 1).Address).Clear
 End Function
+
 
 
