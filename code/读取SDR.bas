@@ -1,4 +1,4 @@
-Attribute VB_Name = "¶ÁÈ¡SDR"
+Attribute VB_Name = "è¯»å–SDR"
 
 
 Function decSDR(rs As Object)
@@ -68,7 +68,7 @@ Function decInfoSDR(rs As Object, s As Object)
             Set ss = s.newSensor
             With ss
                 .Channel = rs.Cells(i, 2).Value
-                .Cat = rs.Cells(i + 1, 2).Value
+                .cat = rs.Cells(i + 1, 2).Value
                 .Description = rs.Cells(i + 2, 2).Value
                 .Details = rs.Cells(i + 3, 2).Value
                 .SerialNumber = rs.Cells(i + 4, 2).Value
@@ -92,7 +92,7 @@ Function decInfoSDR(rs As Object, s As Object)
                     ss.NotInstalled = False
             End Select
             
-            Set mymatches = reISH.Execute(Cells(i + 5, 2).Value)
+            Set mymatches = reISH.Execute(rs.Cells(i + 5, 2).Value)
             If mymatches.Count >= 1 Then
                 Set mymatch = mymatches(0)
                 If mymatch.SubMatches.Count >= 2 Then
@@ -115,7 +115,7 @@ Function decInfoSDR(rs As Object, s As Object)
 End Function
 
 Function decDataSDR(rs As Object, s As Object, ds As Object)
-    ' ¸´ÖÆÊı¾İµ½ĞÂ±í
+    ' å¤åˆ¶æ•°æ®åˆ°æ–°è¡¨
     
     Dim maxX, maxY
     maxX = rs.UsedRange.Rows.Count
@@ -131,7 +131,7 @@ Function decDataSDR(rs As Object, s As Object, ds As Object)
     ds.Range("A1").Select
     
 
-    ' ±ØÒªµÄµ÷Õû
+    ' å¿…è¦çš„è°ƒæ•´
     
     adjustData ds, s
 

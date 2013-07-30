@@ -1,4 +1,4 @@
-Attribute VB_Name = "∂¡»°Nomad"
+Attribute VB_Name = "ËØªÂèñNomad"
 
 Function decNomad(rs As Object)
     Dim s As Station
@@ -41,7 +41,7 @@ Function decInfoNomad(rs As Object, s As Object)
     Set reNSS = CreateObject("vbscript.regexp")
     Set reNLS = CreateObject("vbscript.regexp")
     Set reNSr = CreateObject("vbscript.regexp")
-    reNSS.Pattern = "Site\s+Name:\s*(\S+)" ' \S ”Î [^,#\?\/%&=]
+    reNSS.Pattern = "Site\s+Name:\s*(\S+)" ' \S ‰∏é [^,#\?\/%&=]
     reNLS.Pattern = "Nomad2\s+Name:\s*(\d+)"
     reNSr.Pattern = "^([^\(]+)\((.+)\)(\s+@\s+(\d+)m|)[^\-]*\-\s*(\d+)\s+(min|hour)\s+(Vec\s+|)(Sampl|Averag|Max\sValu|Min\sValu|Std\sDe|Time\sOf\sMa)"
     
@@ -74,14 +74,14 @@ Function decInfoNomad(rs As Object, s As Object)
                         .Description = mymatch(0)
                         .Units = mymatch(1)
                         .Height = mymatch(3)
-                        .Cat = mymatch(7)
-                        .col = j
+                        .cat = mymatch(7)
+                        .Col = j
                     End With
                     
                     Select Case ss.Units
-                        Case "°„"
+                        Case "¬∞"
                             ss.Units = "deg"
-                        Case "°„C"
+                        Case "¬∞C"
                             ss.Units = "C"
                     End Select
                     
@@ -124,15 +124,15 @@ Function getSfSN(s As Object, ns As Collection)
             Set ss = s.SensorsR(k)
         End If
         
-        Select Case n.Cat
+        Select Case n.cat
             Case "Averag", "Sampl"
-                ss.Avg = n.col
+                ss.Avg = n.Col
             Case "Max Valu"
-                ss.Max = n.col
+                ss.Max = n.Col
             Case "Min Valu"
-                ss.Min = n.col
+                ss.Min = n.Col
             Case "Std De"
-                ss.Sd = n.col
+                ss.Sd = n.Col
         End Select
         
     Next

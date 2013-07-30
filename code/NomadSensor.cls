@@ -11,5 +11,5 @@ Attribute VB_Exposed = False
 Public Height      As Single
 Public Description As String
 Public Units       As String
-Public Cat         As String
-Public col         As Integer
+Public cat         As String
+Public Col         As Integer

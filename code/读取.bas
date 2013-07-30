@@ -1,11 +1,11 @@
-Attribute VB_Name = "¶ÁÈ¡"
+Attribute VB_Name = "è¯»å–"
 
 Public reISH    As Object   ' info sensor height
-Public re1      As Object   ' ÅĞ¶ÏÊ±¼äÕıÔò1:
-Public re2      As Object   ' ÅĞ¶ÏÊ±¼äÕıÔò2:
+Public re1      As Object   ' åˆ¤æ–­æ—¶é—´æ­£åˆ™1:
+Public re2      As Object   ' åˆ¤æ–­æ—¶é—´æ­£åˆ™2:
 Public re3      As Object
 
-Sub ¶ÁÈ¡Êı¾İ()
+Sub è¯»å–æ•°æ®()
     initRead
     
     Dim st As Object
@@ -19,12 +19,13 @@ Sub ¶ÁÈ¡Êı¾İ()
     Dim k, s As Object
     For Each k In Stations
         Set s = Stations(k)
-        adjustR s
+        
+        sensorClassfy s
     Next
     
 End Sub
 
-Sub Éú³É1h()
+Sub ç”Ÿæˆ1h()
 
     Dim k, st As Object
     For Each k In Stations
@@ -47,7 +48,7 @@ Sub Éú³É1h()
     Next
 End Sub
 
-' Éè¶¨ÕıÔò
+' è®¾å®šæ­£åˆ™
 Function initRead()
     Set reISH = CreateObject("vbscript.regexp")
     reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
@@ -80,12 +81,12 @@ Function addStation(s As Station)
 
     If Stations.Count >= 1 Then
         If Stations.Exists(s.id) Then
-            Info "Õ¾µãÒÑ´æÔÚ: " + CStr(s.id)
+            Info "ç«™ç‚¹å·²å­˜åœ¨: " + CStr(s.id)
             Exit Function
         End If
     End If
 
-    Info "ĞÂÔöÕ¾µã: " + s.id
+    Info "æ–°å¢ç«™ç‚¹: " + s.id
     Stations.Add s.id, s
         
 End Function
@@ -120,7 +121,7 @@ Function decDate(str As String) As String
     End If
     
     MsgBox "time format err: " + str
-    'Error "Ê±¼ä¸ñÊ½´íÎó"
+    'Error "æ—¶é—´æ ¼å¼é”™è¯¯"
     
 End Function
 
@@ -129,7 +130,7 @@ Function newDate(y As Integer, mo As Integer, d As Integer, h As Integer, Min As
 End Function
 
 Function adjustData(ds As Object, s As Object)
-    ' µ÷ÕûÈÕÆÚ¸ñÊ½
+    ' è°ƒæ•´æ—¥æœŸæ ¼å¼
     
     Dim i
     For i = 2 To ds.UsedRange.Rows.Count
@@ -138,7 +139,7 @@ Function adjustData(ds As Object, s As Object)
     
     ds.Columns("A:A").NumberFormatLocal = "yyyy/m/d h:mm"
     
-    ' ÅĞ¶ÏÊÇ10·ÖÖÓ»¹ÊÇ60·ÖÖÓÊı¾İ
+    ' åˆ¤æ–­æ˜¯10åˆ†é’Ÿè¿˜æ˜¯60åˆ†é’Ÿæ•°æ®
     
     Dim maxX, maxY
     maxX = ds.UsedRange.Rows.Count
@@ -168,7 +169,7 @@ Function adjustData(ds As Object, s As Object)
     
     ds.Range(ds.Cells(1, maxY + 1).Address + ":" + ds.Cells(maxX, maxY + 1).Address).Clear
     
-    ' ÆğÊ¼½áÊøÊ±¼ä
+    ' èµ·å§‹ç»“æŸæ—¶é—´
     
     ds.Cells(2, maxY + 1).Formula = "=min('" + ds.Name + "'!A:A)"
     ds.Cells(2, maxY + 1).NumberFormatLocal = "yyyy/m/d h:mm"
@@ -228,31 +229,12 @@ Function genD1fD2(d2 As Object, d1 As Object)
         
     Next i
     
-    d1.Range(Cells(2, 2), Cells(d1.UsedRange.Rows.Count, d1.UsedRange.Columns.Count)).NumberFormatLocal = "0.00_);[ºìÉ«](0.00)"
+    d1.Range(Cells(2, 2), Cells(d1.UsedRange.Rows.Count, d1.UsedRange.Columns.Count)).NumberFormatLocal = "0.00_);[çº¢è‰²](0.00)"
 
 End Function
 
 
-Function adjustR(s As Object)
 
-    Dim k, ss As sSensor
-    For Each k In s.SensorsR
-        Set ss = s.SensorsR(k)
-        
-        Select Case ss.Units
-        Case "mph":
-            adjustRTimes s.Sheet10m, ss, 1.6 / 3.6
-            adjustRTimes s.Sheet1h, ss, 1.6 / 3.6
-        Case "Degrees F", "F":
-            adjustRF s.Sheet10m, ss
-            adjustRF s.Sheet1h, ss
-        Case "mb", "mB", "MB":
-            adjustRTimes s.Sheet10m, ss, 0.1
-            adjustRTimes s.Sheet1h, ss, 0.1
-        End Select
-    Next
-
-End Function
 
 Function adjustRTimes(sn As String, ss As Object, t As Double)
     Dim i, ds As Object
@@ -297,4 +279,41 @@ Function adjustRF(sn As String, ss As Object)
 End Function
 
 
+Function sensorClassfy(s As Object)
+    Dim ss As Object
+    For Each ss In s.SensorsR.Items
+        Select Case ss.Units
+            Case "m/s", "mph"
+                If ss.Units = "mph" Then
+                    adjustRTimes s.Sheet10m, ss, 1.6 / 3.6
+                    adjustRTimes s.Sheet1h, ss, 1.6 / 3.6
+                    ss.Units = "m/s"
+                End If
+                
+                ss.Scat = "wv"
+            Case "deg", "Degress", "Degrees F", "F"
+                If ss.Units = "Degrees F" Or ss.Units = "F" Then
+                    adjustRF s.Sheet10m, ss
+                    adjustRF s.Sheet1h, ss
+                End If
+                ss.Units = "deg"
+                
+                ss.Scat = "wd"
+            Case "Volts", "v"
+                ss.Scat = "vol"
+            Case "%RH"
+                ss.Scat = "h"
+            Case "C", "Degrees F", "F"
+                ss.Scat = "t"
+            Case "kPa", "mb", "mB", "MB"
+                If ss.Units = "mb" Or ss.Units = "mB" Or ss.Units = "MB" Then
+                    adjustRTimes s.Sheet10m, ss, 0.1
+                    adjustRTimes s.Sheet1h, ss, 0.1
+                    ss.Units = "kPa"
+                End If
+                
+                ss.Scat = "p"
+        End Select
+    Next
+End Function
 

@@ -41,7 +41,7 @@ Public Function setSheet(ByVal s As Object)
     
     Set ra = senr.Offset(oConfig.MaxSensorNum + 3, 0)
     Set rav = ra.Offset(1, 0)
-    Set rad = rav.Offset(oConfig.MaxSensorNum * 3 + 9, 0)
+    Set rad = rav.Offset(oConfig.MaxSensorNum * oConfig.StationNum + 9, 0)
     
     Set dats = oS.Range("E2")
     Set stat = oS.Range("F2")
@@ -84,11 +84,16 @@ Public Function newStation(ByVal s As Object)
     senr.Offset(1, 7).Value = "Scale Factor"
     senr.Offset(1, 8).Value = "Offset"
     senr.Offset(1, 9).Value = "Units"
-    senr.Offset(1, 10).Value = "Scat"
+    senr.Offset(1, 10).Value = "NotInstalled"
+    senr.Offset(1, 11).Value = "Avg"
+    senr.Offset(1, 12).Value = "Sd"
+    senr.Offset(1, 13).Value = "Min"
+    senr.Offset(1, 14).Value = "Max"
+    senr.Offset(1, 15).Value = "Scat"
     
     ra.Value = "-----Ration Information-----"
-    rav.Value = "·çËÙÏà¹ØÐÔ"
-    rad.Value = "·çÏòÏà¹ØÐÔ"
+    'rav.Value = "é£Žé€Ÿç›¸å…³æ€§"
+    'rad.Value = "é£Žå‘ç›¸å…³æ€§"
     
     oS.Range("D1").Value = "id"
     oS.Range("E1").Value = "dataStart"
@@ -117,10 +122,10 @@ Public Property Let Version(ByVal v As String)
 End Property
 
 ' FileName
-Public Property Get FileName() As String
-    FileName = fil.Value
+Public Property Get fileName() As String
+    fileName = fil.Value
 End Property
-Public Property Let FileName(ByVal v As String)
+Public Property Let fileName(ByVal v As String)
     fil.Value = v
 End Property
 
@@ -144,12 +149,12 @@ Public Property Get SensorsR() As Scripting.Dictionary     ' Sensor
 
     Set SensorsR = CreateObject("Scripting.Dictionary")
 
-    For i = 1 To 15
-        Set a = senr.Offset(i, 0)
+    For i = 1 To oConfig.MaxSensorNum
+        Set a = senr.Offset(i + 1, 0)
         If InStr(1, a.Value, "CH", 1) > 0 Then
             Set s = New sSensor
             s.init a
-            SensorsR.Add CStr(i), s
+            SensorsR.Add s.Channel, s
         End If
     Next
     
@@ -163,13 +168,13 @@ Public Function Sensors(c As String) As Scripting.Dictionary
     
     Set Sensors = CreateObject("Scripting.Dictionary")
     
-    For i = 1 To 15
-        Set a = senr.Offset(i, 0)
+    For i = 1 To oConfig.MaxSensorNum
+        Set a = senr.Offset(i + 1, 0)
         If InStr(1, a.Value, "CH", 1) > 0 Then
             Set s = New sSensor
             s.init a
             If s.Scat = c Then
-                SensorsR.Add CStr(i), s
+                Sensors.Add s.Channel, s
             End If
         End If
     Next
@@ -239,3 +244,9 @@ Public Property Get newSensor() As Object
         End If
     Next i
 End Property
+
+
+
+
+
+

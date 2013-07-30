@@ -65,10 +65,10 @@ Public Property Let Channel(ByVal v As String)
 End Property
 
 ' Cat
-Public Property Get Cat() As String
-    Cat = ca.Value
+Public Property Get cat() As String
+    cat = ca.Value
 End Property
-Public Property Let Cat(ByVal v As String)
+Public Property Let cat(ByVal v As String)
     ca.Value = v
 End Property
 
@@ -175,3 +175,33 @@ End Property
 Public Property Let Scat(ByVal v As String)
     sca.Value = v
 End Property
+
+
+'
+' Ration
+'
+Public Property Get Rations() As Scripting.Dictionary
+    
+End Property
+
+'Public Function newRation(ba As Object, i As Integer, j As Integer, Rsq As Double, Slope As Double, Intercept As Double)
+
+'End Function
+
+
+Public Property Get newRation(ba As Object) As Object
+    Dim ra As Object
+    Set ra = New sRation
+    Set ra.Address = ba
+    
+    Set newRation = ra
+    
+    With ra
+        .Rsq = Rsq
+        .Slope = Slope
+        .Intercept = Intercept
+        .Index = i
+    End With
+
+End Property
+
