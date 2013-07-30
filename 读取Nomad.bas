@@ -1,9 +1,37 @@
 Attribute VB_Name = "读取Nomad"
 
-' Nomad格式数据读取
+Function decNomad(rs As Object)
+    Dim s As Station
+    Set s = New Station
+    
+    Dim Site As String
 
-Function decInfoNomad() As String
-    Dim s As New Station
+    Site = "site" & Replace(rs.Range("A3").Value, "Site Name: ", "")
+    
+    If sheetExist(Site) Then
+        s.setSheet Sheets(Site)
+    Else
+        Sheets.Add after:=Sheets(Sheets.Count)
+        ActiveSheet.Name = Site
+        s.newStation Sheets(Site)
+        
+        decInfoNomad rs, s
+
+        s.id = s.Site.Site
+    End If
+    
+    Sheets.Add after:=Sheets(Sheets.Count)
+    ActiveSheet.Name = "data" + s.id
+    
+    decDataNomad rs, s, ActiveSheet
+    
+    addStation s
+
+End Function
+
+
+Function decInfoNomad(rs As Object, s As Object)
+
     Dim ss As NomadSensor
     Dim nss As New Collection
     
@@ -13,38 +41,31 @@ Function decInfoNomad() As String
     Set reNSS = CreateObject("vbscript.regexp")
     Set reNLS = CreateObject("vbscript.regexp")
     Set reNSr = CreateObject("vbscript.regexp")
-    reNSS.Pattern = "Site\s+Name:\s*([^,#\?\/%&=]+)"
+    reNSS.Pattern = "Site\s+Name:\s*(\S+)" ' \S 与 [^,#\?\/%&=]
     reNLS.Pattern = "Nomad2\s+Name:\s*(\d+)"
     reNSr.Pattern = "^([^\(]+)\((.+)\)(\s+@\s+(\d+)m|)[^\-]*\-\s*(\d+)\s+(min|hour)\s+(Vec\s+|)(Sampl|Averag|Max\sValu|Min\sValu|Std\sDe|Time\sOf\sMa)"
     
     s.System = "Nomad"
     
     Dim i As Single
-    For i = 1 To ActiveSheet.UsedRange.Rows.Count
-        If InStr(1, Cells(i, 1).Value, "Nomad2 Name", 1) > 0 Then
-            Set s.Logger = New Logger
-            
-            Set mymatches = reNLS.Execute(Cells(i, 1).Value)
+    For i = 1 To rs.UsedRange.Rows.Count
+        If InStr(1, rs.Cells(i, 1).Value, "Nomad2 Name", 1) > 0 Then
+            Set mymatches = reNLS.Execute(rs.Cells(i, 1).Value)
             Set mymatch = mymatches(0)
             If mymatch.SubMatches.Count >= 1 Then
                 s.Logger.Serial = mymatch.SubMatches(0)
             End If
-            
-            i = i + 3
-        ElseIf InStr(1, Cells(i, 1).Value, "Site Name", 1) > 0 Then
-            Set s.Site = New Site
-            
-            Set mymatches = reNSS.Execute(Cells(i, 1).Value)
+        ElseIf InStr(1, rs.Cells(i, 1).Value, "Site Name", 1) > 0 Then
+            Set mymatches = reNSS.Execute(rs.Cells(i, 1).Value)
             Set mymatch = mymatches(0)
             If mymatch.SubMatches.Count >= 1 Then
                 s.Site.Site = mymatch.SubMatches(0)
             End If
-
-        ElseIf InStr(1, Cells(i, 1).Value, "TimeStamp", 1) > 0 Then
+        ElseIf InStr(1, rs.Cells(i, 1).Value, "TimeStamp", 1) > 0 Then
             
             Dim j As Integer
-            For j = 2 To ActiveSheet.UsedRange.Columns.Count
-                Set mymatches = reNSr.Execute(Cells(i, j).Value)
+            For j = 2 To rs.UsedRange.Columns.Count
+                Set mymatches = reNSr.Execute(rs.Cells(i, j).Value)
                 If mymatches.Count > 0 Then
                     Set ss = New NomadSensor
 
@@ -54,7 +75,7 @@ Function decInfoNomad() As String
                         .Units = mymatch(1)
                         .Height = mymatch(3)
                         .Cat = mymatch(7)
-                        .Col = j
+                        .col = j
                     End With
                     
                     Select Case ss.Units
@@ -64,7 +85,7 @@ Function decInfoNomad() As String
                             ss.Units = "C"
                     End Select
                     
-                    nss.add ss
+                    nss.Add ss
                 End If
             Next
 
@@ -73,48 +94,49 @@ Function decInfoNomad() As String
         End If
     Next i
     
-    s.id = s.Site.Site
-    
     getSfSN s, nss
 
-    addStation s
-
-    decInfoNomad = s.id
 End Function
 
-Function getSfSN(ByRef s As Station, ns As Collection)
+
+Function getSfSN(s As Object, ns As Collection)
     Dim n As NomadSensor
     Dim k As String
-    Dim ss As Sensor
-    
-    For Each n In ns
+    Dim ss As sSensor
+
+
+    Dim i
+    For i = 1 To ns.Count
+        Set n = ns(i)
+
         k = existSN(s.SensorsR, n)
         If k = "" Then
             k = CStr(s.SensorsR.Count + 1)
             
-            Set ss = New Sensor
+            Set ss = s.newSensor
             With ss
                 .Height = n.Height
                 .Description = n.Description
                 .Units = n.Units
                 .Channel = k
             End With
-
-            s.SensorsR.add ss.Channel, ss
+        Else
+            Set ss = s.SensorsR(k)
         End If
         
         Select Case n.Cat
             Case "Averag", "Sampl"
-                s.SensorsR(k).Avg = n.Col
+                ss.Avg = n.col
             Case "Max Valu"
-                s.SensorsR(k).Max = n.Col
+                ss.Max = n.col
             Case "Min Valu"
-                s.SensorsR(k).Min = n.Col
+                ss.Min = n.col
             Case "Std De"
-                s.SensorsR(k).SD = n.Col
+                ss.Sd = n.col
         End Select
         
     Next
+    
 End Function
 
 Function existSN(ss As Scripting.Dictionary, n As NomadSensor) As String
@@ -129,7 +151,7 @@ Function existSN(ss As Scripting.Dictionary, n As NomadSensor) As String
     existSN = ""
 End Function
 
-Function isSameNomadSensor(s As Sensor, n As NomadSensor) As Boolean
+Function isSameNomadSensor(s As sSensor, n As NomadSensor) As Boolean
     If s.Height = n.Height And s.Description = n.Description And s.Units = n.Units Then
         isSameNomadSensor = True
         Exit Function
@@ -139,45 +161,80 @@ Function isSameNomadSensor(s As Sensor, n As NomadSensor) As Boolean
 End Function
 
 
-Function decDataNomad(id As String)
-    Dim rs As Object ' raw sheet
-    Dim ds As Object ' new data sheet
-    Set rs = ActiveSheet
+Function decDataNomad(rs As Object, s As Object, ds As Object)
+    Dim maxX
+    maxX = rs.UsedRange.Rows.Count
+    Dim x, y
     
     ' Add Title
-    
-    Sheets.add After:=Sheets(Sheets.Count)
-    Set ds = ActiveSheet
-
     ds.Range("A1").Value = "Date & Time Stamp"
+    
+    x = rs.Cells(s.DataStart, 1).Address
+    y = rs.Cells(maxX, 1).Address
+    
+    rs.Range(x + ":" + y).Copy
+    ds.Cells(2, 1).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
+        xlNone, SkipBlanks:=False, Transpose:=False
+    
     
     Dim i As Integer
     i = 1
+    Dim ss As Object
     Dim k
 
-    Dim maxX
-    maxX = ActiveSheet.UsedRange.Rows.Count
-
-    
-    For Each s In Stations(id).SensorsR
-        
+    For Each k In s.SensorsR
+        Set ss = s.SensorsR(k)
         ds.Cells(1, (i - 1) * 4 + 2).Value = "CH" + CStr(i) + "AVG"
         ds.Cells(1, (i - 1) * 4 + 3).Value = "CH" + CStr(i) + "SD"
         ds.Cells(1, (i - 1) * 4 + 4).Value = "CH" + CStr(i) + "MAX"
         ds.Cells(1, (i - 1) * 4 + 5).Value = "CH" + CStr(i) + "MIN"
-        i = i + 1
         
+        If ss.Avg > 0 Then
+            x = rs.Cells(s.DataStart, ss.Avg).Address
+            y = rs.Cells(maxX, ss.Avg).Address
+            
+            rs.Range(x + ":" + y).Copy
+            ds.Cells(2, (i - 1) * 4 + 2).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
+        xlNone, SkipBlanks:=False, Transpose:=False
+        End If
+        
+        
+        If ss.Sd > 0 Then
+            x = rs.Cells(s.DataStart, ss.Sd).Address
+            y = rs.Cells(maxX, ss.Sd).Address
+            
+            rs.Range(x + ":" + y).Copy
+            ds.Cells(2, (i - 1) * 4 + 3).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
+        xlNone, SkipBlanks:=False, Transpose:=False
+        End If
+        
+        If ss.Max > 0 Then
+            x = rs.Cells(s.DataStart, ss.Max).Address
+            y = rs.Cells(maxX, ss.Max).Address
+            
+            rs.Range(x + ":" + y).Copy
+            ds.Cells(2, (i - 1) * 4 + 4).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
+        xlNone, SkipBlanks:=False, Transpose:=False
+        End If
 
-        MsgBox Stations(id).SensorsR(s).Avg
-        
-        
+        If ss.Min > 0 Then
+            x = rs.Cells(s.DataStart, ss.Min).Address
+            y = rs.Cells(maxX, ss.Min).Address
+            
+            rs.Range(x + ":" + y).Copy
+            ds.Cells(2, (i - 1) * 4 + 5).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
+        xlNone, SkipBlanks:=False, Transpose:=False
+        End If
+
+        i = i + 1
 
     Next
 
-
+    adjustData ds, s
     
-    Dim x As String, y As String
-
-
 End Function
+
+
+
+
 

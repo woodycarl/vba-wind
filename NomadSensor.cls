@@ -12,4 +12,4 @@ Public Height      As Single
 Public Description As String
 Public Units       As String
 Public Cat         As String
-Public Col         As Integer
+Public col         As Integer

@@ -1,27 +1,50 @@
 Attribute VB_Name = "读取"
 
-
 Public reISH    As Object   ' info sensor height
 Public re1      As Object   ' 判断时间正则1:
 Public re2      As Object   ' 判断时间正则2:
-
+Public re3      As Object
 
 Sub 读取数据()
     initRead
     
-    Dim s, fs As Object
-    Set fs = ActiveSheet
-
-    For Each s In Sheets
-        If InStr(1, s.Name, "raw", 1) > 0 Then
-            s.Select
-
-            decRaw
+    Dim st As Object
+    
+    For Each st In Sheets
+        If InStr(1, st.Name, "raw", 1) > 0 Then
+            decRaw st
         End If
     Next
-
-    fs.Select
     
+    Dim k, s As Object
+    For Each k In Stations
+        Set s = Stations(k)
+        adjustR s
+    Next
+    
+End Sub
+
+Sub 生成1h()
+
+    Dim k, st As Object
+    For Each k In Stations
+        Set st = Stations(k)
+        
+        If st.Sheet1h = "" Then
+            If st.Sheet10m = "" Then
+                MsgBox st.id + ": no data!"
+                Exit Sub
+            End If
+            Info st.id + " no 1h data! gen from 10m data."
+            
+            Sheets.Add after:=Sheets(Sheets.Count)
+            ActiveSheet.Name = "data" + st.id + "1h"
+            
+            genD1fD2 Sheets(st.Sheet10m), ActiveSheet
+            
+            st.Sheet1h = "data" + st.id + "1h"
+        End If
+    Next
 End Sub
 
 ' 设定正则
@@ -34,18 +57,23 @@ Function initRead()
 
     Set re2 = CreateObject("vbscript.regexp")
     re2.Pattern = "(\d{1,2})[\/|-](\d{1,2})[\/|-](\d{4})\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
+    
+    Set re3 = CreateObject("vbscript.regexp")
+    re3.Pattern = "^""?(\d{4})[\-|\/](\d{1,2})[\-|\/](\d{1,2})""?$"
 End Function
 
-Function decRaw()
+Function decRaw(s As Object)
     Dim v
-    v = Range("A1").Value
+    v = s.Range("A1").Value
     
     If InStr(1, v, "SDR", 1) > 0 Then
-        decDataSDR decInfoSDR
-    ElseIf InStr(1, v, "Multi-Track Export -", 1) > 0 Then
-        decDataNomad decInfoNomad
-    End If
 
+        decSDR s
+        'decDataSDR decInfoSDR
+    ElseIf InStr(1, v, "Multi-Track Export -", 1) > 0 Then
+        decNomad s
+        'decDataNomad decInfoNomad
+    End If
 End Function
 
 Function addStation(s As Station)
@@ -56,114 +84,12 @@ Function addStation(s As Station)
             Exit Function
         End If
     End If
-    
+
     Info "新增站点: " + s.id
-    Stations.add s.id, s
-    
-    showInfo s
-    
+    Stations.Add s.id, s
+        
 End Function
 
-Function showInfo(s As Station)
-    Dim fs As Object
-    Set fs = ActiveSheet
-    Dim maxH As Single
-    
-    Sheets.add After:=Sheets(WB.Sheets.Count)
-    
-    Columns("A:A").HorizontalAlignment = xlCenter
-    Columns("B:B").HorizontalAlignment = xlCenter
-    Columns("C:C").HorizontalAlignment = xlCenter
-    
-
-    Range("A1:C1").Merge
-    Range("A1:C1").Value = s.id + "测风塔配置一览表"
-    
-    Range("A2").Value = "测风塔"
-    Range("B2:C2").Merge
-    Range("B2:C2").Value = s.id
-    
-    Range("A3").Value = "地理位置" ' 必要时需要进行转换
-    Range("B3:C3").Merge
-    Range("B3:C3").Value = s.Site.Latitude + "," + s.Site.Longitude
-
-    Range("A4").Value = "海拔高度"
-    Range("B4:C4").Merge
-    Range("B4:C4").Value = CStr(s.Site.SiteElevation) + " m"
-    
-    Range("A5").Value = "测风时段"
-    Range("B5:C5").Merge
-    Range("B5:C5").Value = "start～end" ' 在生成data后写入
-    
-    Range("A6").Value = "塔高"
-    Range("B6:C6").Merge
-    Range("B6:C6").Value = "70 m" ' 求取height最大值
-    
-    ' sensor 分类
-    Range("A7").Value = "信道"
-    Range("B7").Value = "安装高度 (m)"
-    Range("C7").Value = "观测项目"
-    
-    Dim wv As New Scripting.Dictionary
-    Dim wd As New Scripting.Dictionary
-    Dim p As New Scripting.Dictionary
-    Dim t As New Scripting.Dictionary
-    Dim h As New Scripting.Dictionary
-    Dim vol As New Scripting.Dictionary
-
-    Dim ss As Sensor
-    Dim i As Integer
-    i = 8
-    For Each key In s.SensorsR.Keys
-        Set ss = s.SensorsR(key)
-        
-        If ss.Height > maxH Then
-            maxH = ss.Height
-        End If
-        
-        Select Case ss.Units
-            Case "m/s", "mph"
-                wv.add ss.Channel, ss
-
-                addInfoSensor i, ss.Channel, ss.Height, "风速 (m/s)"
-                i = i + 1
-            Case "deg", "Degrees"
-                wd.add ss.Channel, ss
-                addInfoSensor i, ss.Channel, ss.Height, "风向 (度)"
-                i = i + 1
-            Case "Volts", "v"
-                vol.add ss.Channel, ss
-            Case "%RH"
-                h.add ss.Channel, ss
-            Case "C", "Degrees F"
-                t.add ss.Channel, ss
-                addInfoSensor i, ss.Channel, ss.Height, "气温 (℃)"
-                i = i + 1
-            Case "kPa", "mb", "mB"
-                p.add ss.Channel, ss
-                addInfoSensor i, ss.Channel, ss.Height, "气压 (kpa)"
-                i = i + 1
-        End Select
-        
-    Next
-    
-    Range("B6:C6").Value = CStr(maxH) + " m"
-    
-    Columns("A:A").EntireColumn.AutoFit
-    Columns("B:B").ColumnWidth = 16
-    Columns("C:C").ColumnWidth = 15
-    
-    ActiveSheet.Name = "info-" + s.id
-
-    fs.Select
-
-End Function
-
-Function addInfoSensor(i As Integer, c As String, h As Single, t As String)
-    Range("A" + CStr(i)).Value = "CH" + c
-    Range("B" + CStr(i)).Value = h
-    Range("C" + CStr(i)).Value = t
-End Function
 
 Function decDate(str As String) As String
     Set mymatches = re1.Execute(str)
@@ -184,7 +110,17 @@ Function decDate(str As String) As String
         End If
     End If
     
-    Error "时间格式错误"
+    Set mymatches = re3.Execute(str)
+    If mymatches.Count >= 1 Then
+        Set mymatch = mymatches(0)
+        If mymatch.SubMatches.Count >= 3 Then
+            decDate = newDate(mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(2), 0, 0)
+            Exit Function
+        End If
+    End If
+    
+    MsgBox "time format err: " + str
+    'Error "时间格式错误"
     
 End Function
 
@@ -192,44 +128,172 @@ Function newDate(y As Integer, mo As Integer, d As Integer, h As Integer, Min As
     newDate = CStr(y) + "/" + CStr(mo) + "/" + CStr(d) + " " + CStr(h) + ":" + CStr(Min)
 End Function
 
-Function adjustData(id As String)
-    ' 需要激活sheet
-    ''''''''''''''''
-
+Function adjustData(ds As Object, s As Object)
     ' 调整日期格式
     
     Dim i
-    For i = 2 To ActiveSheet.UsedRange.Rows.Count
-        Cells(i, 1).Value = decDate(Cells(i, 1).Value)
+    For i = 2 To ds.UsedRange.Rows.Count
+        ds.Cells(i, 1).Value = decDate(ds.Cells(i, 1).Value)
     Next i
+    
+    ds.Columns("A:A").NumberFormatLocal = "yyyy/m/d h:mm"
     
     ' 判断是10分钟还是60分钟数据
     
     Dim maxX, maxY
-    maxX = ActiveSheet.UsedRange.Rows.Count
-    maxY = ActiveSheet.UsedRange.Columns.Count
+    maxX = ds.UsedRange.Rows.Count
+    maxY = ds.UsedRange.Columns.Count
     
     Dim x As String, y As String
-    x = Cells(2, maxY + 1).Address
-    y = Cells(maxX, maxY + 1).Address
+    x = ds.Cells(2, maxY + 1).Address
+    y = ds.Cells(maxX, maxY + 1).Address
     
-    Cells(2, maxY + 1).Formula = "=MINUTE(A2)"
-    Cells(2, maxY + 1).AutoFill Destination:=Range(x + ":" + y)
+    ds.Cells(2, maxY + 1).Formula = "=MINUTE(A2)"
+    ds.Cells(2, maxY + 1).AutoFill Destination:=ds.Range(x + ":" + y)
 
-    Cells(1, maxY + 1).Formula = "=AVERAGE(" + CStr(x) + ":" + CStr(y) + ")"
+    ds.Cells(1, maxY + 1).Formula = "=AVERAGE(" + CStr(x) + ":" + CStr(y) + ")"
     
     Dim n As String
-    If Cells(1, maxY + 1).Value > 1 Then
-        n = "data-" + id + "-10m"
+    If ds.Cells(1, maxY + 1).Value > 1 Then
+        n = "data" + s.id + "10m"
+        s.Sheet10m = n
     Else
-        n = "data-" + id + "-1h"
+        n = "data" + s.id + "1h"
+        s.Sheet1h = n
     End If
     If sheetExist(n) Then
         Sheets(n).Delete
     End If
-    ActiveSheet.Name = n
+    ds.Name = n
     
-    Range(Cells(1, maxY + 1).Address + ":" + Cells(maxX, maxY + 1).Address).Clear
+    ds.Range(ds.Cells(1, maxY + 1).Address + ":" + ds.Cells(maxX, maxY + 1).Address).Clear
+    
+    ' 起始结束时间
+    
+    ds.Cells(2, maxY + 1).Formula = "=min('" + ds.Name + "'!A:A)"
+    ds.Cells(2, maxY + 1).NumberFormatLocal = "yyyy/m/d h:mm"
+    s.StartTime = ds.Cells(2, maxY + 1).Value
+    ds.Cells(2, maxY + 1).Formula = "=max('" + ds.Name + "'!A:A)"
+    ds.Cells(2, maxY + 1).NumberFormatLocal = "yyyy/m/d h:mm"
+    s.EndTime = ds.Cells(2, maxY + 1).Value
+    
+    ds.Cells(2, maxY + 1).Clear
+End Function
+
+
+Function genD1fD2(d2 As Object, d1 As Object)
+    Dim maxX, maxY
+    maxY = d2.UsedRange.Columns.Count
+    maxX = d2.UsedRange.Rows.Count
+
+    d2.Range(d2.Cells(1, 1), d2.Cells(1, maxY)).Copy
+    d1.Paste
+    
+    Dim d2s, d2e, d1i, val
+    
+    Dim i, j, k
+    Dim sum
+    For i = 2 To maxX
+        If i = 2 Then
+            d2s = 2
+            d2e = 2
+            d1i = 2
+            val = Format(d2.Cells(i, 1).Value, "yyyy/mm/dd hh")
+        End If
+    
+        If Format(d2.Cells(i, 1).Value, "yyyy/mm/dd hh") = val Then
+            d2e = d2e + 1
+        Else
+            d1.Cells(d1i, 1).Value = val + ":00"
+            
+            
+            For j = 2 To maxY
+
+                If d2.Cells(d2s, j).Value <> "" Then
+                    
+                    sum = 0
+                    For k = d2s To d2e
+                        sum = sum + d2.Cells(k, j).Value
+                    Next k
+                    d1.Cells(d1i, j) = sum / (d2e - d2s + 1)
+                    'd1.Cells(d1i, j).Formula = "=average(" + d2.Name + "!" + d2.Cells(d2s, j).Address + ":" + d2.Cells(d2e, j).Address + ")"
+                End If
+            Next j
+            
+            d2s = i
+            d2e = i
+            d1i = d1i + 1
+            val = Format(d2.Cells(i, 1).Value, "yyyy/mm/dd hh")
+        End If
+        
+    Next i
+    
+    d1.Range(Cells(2, 2), Cells(d1.UsedRange.Rows.Count, d1.UsedRange.Columns.Count)).NumberFormatLocal = "0.00_);[红色](0.00)"
+
+End Function
+
+
+Function adjustR(s As Object)
+
+    Dim k, ss As sSensor
+    For Each k In s.SensorsR
+        Set ss = s.SensorsR(k)
+        
+        Select Case ss.Units
+        Case "mph":
+            adjustRTimes s.Sheet10m, ss, 1.6 / 3.6
+            adjustRTimes s.Sheet1h, ss, 1.6 / 3.6
+        Case "Degrees F", "F":
+            adjustRF s.Sheet10m, ss
+            adjustRF s.Sheet1h, ss
+        Case "mb", "mB", "MB":
+            adjustRTimes s.Sheet10m, ss, 0.1
+            adjustRTimes s.Sheet1h, ss, 0.1
+        End Select
+    Next
+
+End Function
+
+Function adjustRTimes(sn As String, ss As Object, t As Double)
+    Dim i, ds As Object
+    
+    If sn <> "" And sheetExist(sn) Then
+        Set ds = Sheets(sn)
+        For i = 2 To ds.Rows.Count
+            If ss.Avg > 0 Then
+                ds.Cells(i, ss.Avg).Value = ds.Cells(i, ss.Avg).Value * t
+            End If
+            
+            If ss.Max > 0 Then
+                ds.Cells(i, ss.Max).Value = ds.Cells(i, ss.Max).Value * t
+            End If
+            
+            If ss.Min > 0 Then
+                ds.Cells(i, ss.Min).Value = ds.Cells(i, ss.Min).Value * t
+            End If
+        Next i
+    End If
+End Function
+
+Function adjustRF(sn As String, ss As Object)
+    Dim i, ds As Object
+    
+    If sn <> "" And sheetExist(sn) Then
+        Set ds = Sheets(sn)
+        For i = 2 To ds.Rows.Count
+            If ss.Avg > 0 Then
+                ds.Cells(i, ss.Avg).Value = (ds.Cells(i, ss.Avg).Value - 32) / 1.8
+            End If
+            
+            If ss.Max > 0 Then
+                ds.Cells(i, ss.Max).Value = (ds.Cells(i, ss.Max).Value - 32) / 1.8
+            End If
+            
+            If ss.Min > 0 Then
+                ds.Cells(i, ss.Min).Value = (ds.Cells(i, ss.Min).Value - 32) / 1.8
+            End If
+        Next i
+    End If
 End Function
 
 

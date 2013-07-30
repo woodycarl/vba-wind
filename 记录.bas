@@ -3,10 +3,10 @@ Public LoggerIndex As Integer
 Private message As Object
 
 Function º«¬º≥ı ºªØ()
-    Set message = Home.Range("A1")
+    Set message = oHome.Range("A1")
 
     ' «Â≥˝º«¬º
-    RecordSheet.Range("A2:C" & CStr(RecordSheet.UsedRange.Rows.Count)).Clear
+    oRecord.Range("A2:C" & CStr(oRecord.UsedRange.Rows.Count)).Clear
 
     LoggerIndex = 2
 End Function
@@ -16,9 +16,9 @@ Private Function Logger(err As String, str As String)
     Dim s As String
     s = CStr(LoggerIndex)
     
-    RecordSheet.Range("A" + s).Value = Format(Now(), "mm/dd hh:MM:ss ")
-    RecordSheet.Range("B" + s).Value = err
-    RecordSheet.Range("C" + s).Value = str
+    oRecord.Range("A" + s).Value = Format(Now(), "mm/dd hh:MM:ss ")
+    oRecord.Range("B" + s).Value = err
+    oRecord.Range("C" + s).Value = str
     
     
     ' …Ë÷√œ‘ æ∏Ò Ω
@@ -38,13 +38,13 @@ Private Function Logger(err As String, str As String)
             InteriorColor = "10284031"
     End Select
     
-    With RecordSheet.Range("A" + s + ":" + "C" + s).Font
-        .color = FontColor
+    With oRecord.Range("A" + s + ":" + "C" + s).Font
+        .Color = FontColor
         .TintAndShade = 0
     End With
-    With RecordSheet.Range("A" + s + ":" + "C" + s).Interior
+    With oRecord.Range("A" + s + ":" + "C" + s).Interior
         .PatternColorIndex = xlAutomatic
-        .color = InteriorColor
+        .Color = InteriorColor
         .TintAndShade = 0
     End With
     
@@ -52,15 +52,15 @@ Private Function Logger(err As String, str As String)
 End Function
 
 Function Error(str As String)
-    Call Logger("°∏Error°π", str)
+    Logger "°∏Error°π", str
 End Function
 
 Function Info(str As String)
-    Call Logger("°∏Info°π", str)
+    Logger "°∏Info°π", str
 End Function
 
 Function Warn(str As String)
-    Call Logger("°∏Warn°π", str)
+    Logger "°∏Warn°π", str
 End Function
 
 
@@ -70,3 +70,48 @@ Function newMessage(str As String)
     message.Value = ""
 End Function
 
+
+Sub ∫Í6()
+Attribute ∫Í6.VB_ProcData.VB_Invoke_Func = " \n14"
+'
+' ∫Í6 ∫Í
+'
+
+'
+    Range("A182:A199").Select
+    Selection.NumberFormatLocal = "yyyy/m/d h:mm"
+End Sub
+Sub ∫Í7()
+Attribute ∫Í7.VB_ProcData.VB_Invoke_Func = " \n14"
+'
+' ∫Í7 ∫Í
+'
+
+'
+    Range("A180:A197").Select
+    
+End Sub
+Sub ∫Í8()
+Attribute ∫Í8.VB_ProcData.VB_Invoke_Func = " \n14"
+'
+' ∫Í8 ∫Í
+'
+
+'
+    Columns("A:A").Select
+    Selection.NumberFormatLocal = "yyyy/m/d h:mm"
+    Range("C9").Select
+    ActiveWindow.SmallScroll Down:=27
+End Sub
+Sub ∫Í9()
+Attribute ∫Í9.VB_ProcData.VB_Invoke_Func = " \n14"
+'
+' ∫Í9 ∫Í
+'
+
+'
+    Rows("1:1").Select
+    Selection.Copy
+    Sheets("data-8014-1h").Select
+    ActiveSheet.Paste
+End Sub
