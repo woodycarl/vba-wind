@@ -8,7 +8,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
-
+Private Const ra_x As Integer = 15
+Private Const ra_y As Integer = 6
 
 Private calI    As Object
 Private maxs    As Object
@@ -22,22 +23,29 @@ Private autoR   As Object
 Private s       As Object
 Private mD      As Object
 
-Public Function init(oS As Object)
+Public Function init(os As Object)
 
-    Set calI = oS.Range("B2")
-    Set maxs = oS.Range("B3")
-    Set stan = oS.Range("B4")
+    Set calI = os.Range("B2")
+    Set maxs = os.Range("B3")
+    Set stan = os.Range("B4")
     
-    Set rL = oS.Range("F2")
-    Set calH = oS.Range("F3")
-    Set airD = oS.Range("F4")
-    Set useS = oS.Range("F5")
-    Set autoR = oS.Range("F6")
-    Set s = oS.Range("F7")
-    Set mD = oS.Range("F8")
+    Set rL = os.Range("F2")
+    Set calH = os.Range("F3")
+    Set airD = os.Range("F4")
+    Set useS = os.Range("F5")
+    Set autoR = os.Range("F6")
+    Set s = os.Range("F7")
+    Set mD = os.Range("F8")
 End Function
 
-
+' rax, ray
+' 相关性图表间隔
+Public Property Get rax() As Integer
+    rax = ra_x
+End Property
+Public Property Get ray() As Integer
+    ray = ra_y
+End Property
 '
 ' CalID
 ' 文档编号

@@ -57,10 +57,10 @@ Public Property Let id(ByVal v As String)
 End Property
 
 ' Channel
-Public Property Get Channel() As String
-    Channel = ch.Value
+Public Property Get channel() As String
+    channel = ch.Value
 End Property
-Public Property Let Channel(ByVal v As String)
+Public Property Let channel(ByVal v As String)
     ch.Value = v
 End Property
 
@@ -181,27 +181,16 @@ End Property
 ' Ration
 '
 Public Property Get Rations() As Scripting.Dictionary
+    Set Rations = CreateObject("Scripting.Dictionary")
+    
+    Dim i
+    For i = 1 To oConfig.MaxSensorNum * oConfig.StationNum
+        
+    
+    Next
     
 End Property
 
-'Public Function newRation(ba As Object, i As Integer, j As Integer, Rsq As Double, Slope As Double, Intercept As Double)
-
-'End Function
 
 
-Public Property Get newRation(ba As Object) As Object
-    Dim ra As Object
-    Set ra = New sRation
-    Set ra.Address = ba
-    
-    Set newRation = ra
-    
-    With ra
-        .Rsq = Rsq
-        .Slope = Slope
-        .Intercept = Intercept
-        .Index = i
-    End With
-
-End Property
 

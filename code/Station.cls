@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Private oS      As Object
+Public os       As Object
 
 Private sys     As Object
 Private ver     As Object
@@ -17,8 +17,9 @@ Private log     As Object
 Private sit     As Object
 Private senr    As Object
 Private ra      As Object
-Private rav     As Object
-Private rad     As Object
+Public rav      As Object
+
+Private vavg     As Object
 
 Private dats    As Object
 Private stat    As Object
@@ -29,27 +30,29 @@ Private s1h     As Object
 Private i_d     As Object
 
 Public Function setSheet(ByVal s As Object)
-    Set oS = s
+    Set os = s
     
-    Set sys = oS.Range("A1")
-    Set ver = oS.Range("B1")
-    Set fil = oS.Range("E1")
+    Set sys = os.Range("A1")
+    Set ver = os.Range("B1")
+    Set fil = os.Range("E1")
     
-    Set log = oS.Range("A3")
-    Set sit = oS.Range("A8")
-    Set senr = oS.Range("A19")
+    Set log = os.Range("A3")
+    Set sit = os.Range("A8")
+    Set senr = os.Range("A19")
     
     Set ra = senr.Offset(oConfig.MaxSensorNum + 3, 0)
     Set rav = ra.Offset(1, 0)
-    Set rad = rav.Offset(oConfig.MaxSensorNum * oConfig.StationNum + 9, 0)
     
-    Set dats = oS.Range("E2")
-    Set stat = oS.Range("F2")
-    Set endt = oS.Range("G2")
     
-    Set s10m = oS.Range("H2")
-    Set s1h = oS.Range("I2")
-    Set i_d = oS.Range("D2")
+    Set vavg = rav.Offset(oConfig.MaxSensorNum * oConfig.rax + 4, 0)
+    
+    Set dats = os.Range("E2")
+    Set stat = os.Range("F2")
+    Set endt = os.Range("G2")
+    
+    Set s10m = os.Range("H2")
+    Set s1h = os.Range("I2")
+    Set i_d = os.Range("D2")
 
 End Function
 
@@ -95,12 +98,14 @@ Public Function newStation(ByVal s As Object)
     'rav.Value = "风速相关性"
     'rad.Value = "风向相关性"
     
-    oS.Range("D1").Value = "id"
-    oS.Range("E1").Value = "dataStart"
-    oS.Range("F1").Value = "timeStart"
-    oS.Range("G1").Value = "timeEnd"
-    oS.Range("H1").Value = "10m sheet"
-    oS.Range("I1").Value = "1h sheet"
+    vavg.Value = "平均风速、风功率"
+    
+    os.Range("D1").Value = "id"
+    os.Range("E1").Value = "dataStart"
+    os.Range("F1").Value = "timeStart"
+    os.Range("G1").Value = "timeEnd"
+    os.Range("H1").Value = "10m sheet"
+    os.Range("I1").Value = "1h sheet"
 
 End Function
 
@@ -154,7 +159,7 @@ Public Property Get SensorsR() As Scripting.Dictionary     ' Sensor
         If InStr(1, a.Value, "CH", 1) > 0 Then
             Set s = New sSensor
             s.init a
-            SensorsR.Add s.Channel, s
+            SensorsR.Add s.channel, s
         End If
     Next
     
@@ -174,7 +179,7 @@ Public Function Sensors(c As String) As Scripting.Dictionary
             Set s = New sSensor
             s.init a
             If s.Scat = c Then
-                Sensors.Add s.Channel, s
+                Sensors.Add s.channel, s
             End If
         End If
     Next
@@ -245,7 +250,19 @@ Public Property Get newSensor() As Object
     Next i
 End Property
 
+Public Function newRation(r As Double, s As Double, i As Double, x As Integer, y As Integer) As Object
 
+    Set newRation = New sRation
+    newRation.init rav.Offset(x + 2, y + 2)
+    
+    With newRation
+        .Rsq = r
+        .Slope = s
+        .Intercept = i
+        .Index = id
+    End With
+    
+End Function
 
 
 

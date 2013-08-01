@@ -240,12 +240,13 @@ Function adjustRTimes(sn As String, ss As Object, t As Double)
     Dim i, ds As Object
     
     If sn <> "" And sheetExist(sn) Then
+
         Set ds = Sheets(sn)
         For i = 2 To ds.Rows.Count
             If ss.Avg > 0 Then
                 ds.Cells(i, ss.Avg).Value = ds.Cells(i, ss.Avg).Value * t
             End If
-            
+
             If ss.Max > 0 Then
                 ds.Cells(i, ss.Max).Value = ds.Cells(i, ss.Max).Value * t
             End If
@@ -280,10 +281,12 @@ End Function
 
 
 Function sensorClassfy(s As Object)
-    Dim ss As Object
-    For Each ss In s.SensorsR.Items
+    Dim k, ss As Object
+    For Each k In s.SensorsR
+        Set ss = s.SensorsR(k)
         Select Case ss.Units
             Case "m/s", "mph"
+
                 If ss.Units = "mph" Then
                     adjustRTimes s.Sheet10m, ss, 1.6 / 3.6
                     adjustRTimes s.Sheet1h, ss, 1.6 / 3.6
@@ -292,6 +295,7 @@ Function sensorClassfy(s As Object)
                 
                 ss.Scat = "wv"
             Case "deg", "Degress", "Degrees F", "F"
+
                 If ss.Units = "Degrees F" Or ss.Units = "F" Then
                     adjustRF s.Sheet10m, ss
                     adjustRF s.Sheet1h, ss
@@ -306,6 +310,7 @@ Function sensorClassfy(s As Object)
             Case "C", "Degrees F", "F"
                 ss.Scat = "t"
             Case "kPa", "mb", "mB", "MB"
+
                 If ss.Units = "mb" Or ss.Units = "mB" Or ss.Units = "MB" Then
                     adjustRTimes s.Sheet10m, ss, 0.1
                     adjustRTimes s.Sheet1h, ss, 0.1

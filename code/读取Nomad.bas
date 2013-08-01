@@ -1,5 +1,6 @@
 Attribute VB_Name = "读取Nomad"
 
+' Nomad格式数据读取
 Function decNomad(rs As Object)
     Dim s As Station
     Set s = New Station
@@ -118,7 +119,7 @@ Function getSfSN(s As Object, ns As Collection)
                 .Height = n.Height
                 .Description = n.Description
                 .Units = n.Units
-                .Channel = k
+                .channel = k
             End With
         Else
             Set ss = s.SensorsR(k)

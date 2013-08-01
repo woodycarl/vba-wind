@@ -1,6 +1,6 @@
 Attribute VB_Name = "读取SDR"
 
-
+' SDR格式数据读取
 Function decSDR(rs As Object)
     Dim s As Station
     Set s = New Station
@@ -21,19 +21,16 @@ Function decSDR(rs As Object)
         s.id = s.Site.Site
     End If
     
-    Sheets.Add after:=Sheets(Sheets.Count)
+    rs.Copy after:=Sheets(Sheets.Count)
     ActiveSheet.Name = "data" + s.id
-    
-    decDataSDR rs, s, ActiveSheet
-    
-    addStation s
+    Rows("1:" & (s.DataStart - 1)).Delete shift:=xlUp
+    adjustData ActiveSheet, s
 
+    addStation s
 End Function
 
-Function decInfoSDR(rs As Object, s As Object)
-
+Private Function decInfoSDR(rs As Object, s As Object)
     s.System = "SDR"
-    
     s.Version = rs.Range("B1").Value
     
     Dim ss As Object
@@ -41,7 +38,6 @@ Function decInfoSDR(rs As Object, s As Object)
     Dim i As Single
     For i = 1 To rs.UsedRange.Rows.Count
         If InStr(1, rs.Cells(i, 1).Value, "Logger", 1) > 0 Then
-
             With s.Logger
                 .Model = rs.Cells(i + 1, 2).Value
                 .Serial = rs.Cells(i + 2, 2).Value
@@ -50,7 +46,6 @@ Function decInfoSDR(rs As Object, s As Object)
             
             i = i + 3
         ElseIf InStr(1, Cells(i, 1).Value, "Site", 1) > 0 Then
-
             With s.Site
                 .Site = rs.Cells(i + 1, 2).Value
                 .SiteDesc = rs.Cells(i + 2, 2).Value
@@ -67,7 +62,7 @@ Function decInfoSDR(rs As Object, s As Object)
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Channel", 1) > 0 Then
             Set ss = s.newSensor
             With ss
-                .Channel = rs.Cells(i, 2).Value
+                .channel = rs.Cells(i, 2).Value
                 .cat = rs.Cells(i + 1, 2).Value
                 .Description = rs.Cells(i + 2, 2).Value
                 .Details = rs.Cells(i + 3, 2).Value
@@ -75,14 +70,14 @@ Function decInfoSDR(rs As Object, s As Object)
                 .ScaleFactor = rs.Cells(i + 6, 2).Value
                 .Offset = rs.Cells(i + 7, 2).Value
                 .Units = rs.Cells(i + 8, 2).Value
-                .Avg = (rs.Cells(i, 2).Value - 1) * 4 + 1
-                .Sd = (rs.Cells(i, 2).Value - 1) * 4 + 2
-                .Min = (rs.Cells(i, 2).Value - 1) * 4 + 3
-                .Max = (rs.Cells(i, 2).Value - 1) * 4 + 4
+                .Avg = (rs.Cells(i, 2).Value - 1) * 4 + 2
+                .Sd = (rs.Cells(i, 2).Value - 1) * 4 + 3
+                .Min = (rs.Cells(i, 2).Value - 1) * 4 + 4
+                .Max = (rs.Cells(i, 2).Value - 1) * 4 + 5
             End With
             
-            If Len(ss.Channel) < 1 Then
-                Error "Channel: Ch" + ss.Channel
+            If Len(ss.channel) < 1 Then
+                Error "Channel: Ch" + ss.channel
             End If
             
             Select Case ss.Units
@@ -106,36 +101,11 @@ Function decInfoSDR(rs As Object, s As Object)
             
             i = i + 8
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Date", 1) > 0 Then
-            s.DataStart = i + 1
+            s.DataStart = i
             Exit For
         End If
     
     Next i
     
 End Function
-
-Function decDataSDR(rs As Object, s As Object, ds As Object)
-    ' 复制数据到新表
-    
-    Dim maxX, maxY
-    maxX = rs.UsedRange.Rows.Count
-    maxY = rs.UsedRange.Columns.Count
-    
-    Dim x As String, y As String
-    x = rs.Cells(s.DataStart - 1, 1).Address
-    y = rs.Cells(maxX, maxY).Address
-
-    rs.Range(x + ":" + y).Copy
-    
-    ds.Paste
-    ds.Range("A1").Select
-    
-
-    ' 必要的调整
-    
-    adjustData ds, s
-
-End Function
-
-
 

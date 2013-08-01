@@ -7,90 +7,73 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Private a As Object
 
-Private id As Integer
-Private r As Integer
-Private s As Integer
-Private i As Integer
+Private r As Object
+Private s As Object
+Private i As Object
 
-Private delimiter As String
+Private c As Object
+Private si As Object
+Private sc As Object
 
-Private Sub Class_Initialize()
-    delimiter = "," '设定分割符
+
+Public Function init(a As Object, pox As Integer, poy As Integer)
+    Set r = a
+    Set s = a.Offset(1, 0)
+    Set i = a.Offset(2, 0)
     
-    id = 0
-    r = 1
-    s = 2
-    i = 3
-End Sub
-
-Public Function init(a1 As Object)
-    Set a = a1
+    Set c = a.Offset(0, -poy)
+    Set si = a.Offset(-pox + 1, 0)
+    Set sc = a.Offset(-pox + 2, 0)
+    
 End Function
 
 ' Sid
 Public Property Get Sid() As String
-    Sid = a.Offset(-CInt(getV(id)) - 1, 0).Value
+    Sid = si.Value
 End Property
 Public Property Let Sid(ByVal v As String)
-    a.Offset(-CInt(getV(id)) - 1, 0).Value = v
+    si.Value = v
+End Property
+
+' Sch
+Public Property Get Sch() As String
+    Sch = Replace(sc.Value, "CH", "")
+End Property
+Public Property Let Sch(ByVal v As String)
+    sc.Value = "CH" & v
 End Property
 
 ' Channel
-Public Property Get Channel() As Integer
-    Channel = CInt(Replace(a.Offset(-CInt(getV(id)), 0).Value, "CH", ""))
+Public Property Get channel() As String
+    channel = Replace(c.Value, "CH", "")
 End Property
-Public Property Let Channel(ByVal v As Integer)
-    a.Offset(-CInt(getV(id)), 0).Value = "CH" & v
+Public Property Let channel(ByVal v As String)
+    c.Value = "CH" & v
 End Property
 
-' Index
-Public Property Get Index() As Integer
-    Index = CInt(getV(id))
-End Property
-Public Property Let Index(ByVal v As Integer)
-    codeRation id, v
-End Property
 
 ' Rsq
 Public Property Get Rsq() As Double
-    Rsq = CDbl(getV(r))
+    Rsq = r.Value
 End Property
 Public Property Let Rsq(ByVal v As Double)
-    codeRation r, v
+    r.Value = v
 End Property
 
 ' Slope
 Public Property Get Slope() As Double
-    Slope = CDbl(getV(s))
+    Slope = s.Value
 End Property
 Public Property Let Slope(ByVal v As Double)
-    codeRation s, v
+    s.Value = v
 End Property
 
 ' Intercept
 Public Property Get Intercept() As Double
-    Intercept = CDbl(getV(i))
+    Intercept = i.Value
 End Property
 Public Property Let Intercept(ByVal v As Double)
-    codeRation i, v
+    i.Value = v
 End Property
-
-Private Function codeRation(arri As Integer, v As Variant)
-    Dim arr
-    arr = decRation()
-    arr(arri) = v
-    a.Value = Join(arr, delimiter)
-End Function
-
-Private Function decRation() As Variant
-    decRation = Split(a.Value, delimiter)
-End Function
-
-Private Function getV(vi As Integer) As String
-    Dim arr
-    arr = decRation()
-    getV = arr(vi)
-End Function
 

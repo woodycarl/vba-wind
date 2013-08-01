@@ -55,25 +55,25 @@ Function showInfo(s As Station, ds As Object)
         
         Select Case ss.Units
             Case "m/s", "mph"
-                wv.Add ss.Channel, ss
+                wv.Add ss.channel, ss
 
-                addInfoSensor ds, i, ss.Channel, ss.Height, "风速 (m/s)"
+                addInfoSensor ds, i, ss.channel, ss.Height, "风速 (m/s)"
                 i = i + 1
             Case "deg", "Degrees"
-                wd.Add ss.Channel, ss
-                addInfoSensor ds, i, ss.Channel, ss.Height, "风向 (度)"
+                wd.Add ss.channel, ss
+                addInfoSensor ds, i, ss.channel, ss.Height, "风向 (度)"
                 i = i + 1
             Case "Volts", "v"
-                vol.Add ss.Channel, ss
+                vol.Add ss.channel, ss
             Case "%RH"
-                h.Add ss.Channel, ss
+                h.Add ss.channel, ss
             Case "C", "Degrees F"
-                t.Add ss.Channel, ss
-                addInfoSensor ds, i, ss.Channel, ss.Height, "气温 (℃)"
+                t.Add ss.channel, ss
+                addInfoSensor ds, i, ss.channel, ss.Height, "气温 (℃)"
                 i = i + 1
             Case "kPa", "mb", "mB"
-                p.Add ss.Channel, ss
-                addInfoSensor ds, i, ss.Channel, ss.Height, "气压 (kpa)"
+                p.Add ss.channel, ss
+                addInfoSensor ds, i, ss.channel, ss.Height, "气压 (kpa)"
                 i = i + 1
         End Select
         

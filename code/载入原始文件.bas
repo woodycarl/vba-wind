@@ -1,12 +1,18 @@
 Attribute VB_Name = "载入原始文件"
+' 打开文件选择对话框
+' 选择文件后自动导入,并生成以raw开头的表
+
+Private Const cfp As String = "F1" ' 用于存放文件名的单元格编号
+Private Const cfpn As String = "E1" ' 提示
+Private Const preRaw As String = "raw" ' 表名前缀
 
 Sub 选择文件()
-    ' open choose file dialog
-    Dim fd  As FileDialog
+    Dim fd  As Object
     Dim fp As String
     Dim sn As String ' sheet name
     Dim i As Integer ' raw index
     i = 1
+    
     Set fd = Application.FileDialog(msoFileDialogFilePicker)
     With fd
         .ButtonName = "打开"
@@ -25,7 +31,7 @@ Sub 选择文件()
             delExistRaw fp      ' 删除已导入的相同文件
             sn = newRawName(i)  ' 生成新raw sheet名
             
-            导入原始文件 fp, sn
+            loadData fp, sn
             
             i = i + 1
         Next
@@ -33,7 +39,7 @@ Sub 选择文件()
     
 End Sub
 
-Function 导入原始文件(path As String, SheetName As String)
+Private Function loadData(path As String, SheetName As String)
     Dim fs As Object
     Set fs = ActiveSheet
     ' open in tmp file, move to oWB
@@ -45,21 +51,22 @@ Function 导入原始文件(path As String, SheetName As String)
     Sheets(1).Select
     Sheets(1).Name = SheetName
     Sheets(1).Move after:=oWB.Sheets(oWB.Sheets.Count)
+    
     Sheets(SheetName).Select
-    Range("E1").Value = "FileName"
-    Range("F1").Value = path
+    Range(cfpn).Value = "FileName"
+    Range(cfp).Value = path
     
     fs.Select
 End Function
 
-Function delExistRaw(path As String)
+Private Function delExistRaw(path As String)
     Application.DisplayAlerts = False
     
     Dim s
 del:
     For Each s In Sheets
-        If InStr(1, s.Name, "raw", 1) > 0 Then
-            If s.Range("F1") = path Then
+        If InStr(1, s.Name, preRaw, 1) > 0 Then
+            If s.Range(cfp) = path Then
                 s.Delete
                 GoTo del
             End If
@@ -69,11 +76,11 @@ del:
     Application.DisplayAlerts = True
 End Function
 
-Function newRawName(i As Integer) As String
-    If sheetExist("raw" & i) Then
+Private Function newRawName(i As Integer) As String
+    If sheetExist(preRaw & i) Then
         newRawName = newRawName(i + 1)
     Else
-        newRawName = "raw" & i
+        newRawName = preRaw & i
     End If
 End Function
 
@@ -83,7 +90,7 @@ Sub 移除原始数据()
     Dim s
 del:
     For Each s In Sheets
-        If InStr(1, s.Name, "raw", 1) > 0 Then
+        If InStr(1, s.Name, preRaw, 1) > 0 Then
             s.Delete
             GoTo del
         End If
