@@ -29,6 +29,8 @@ Private s10m    As Object
 Private s1h     As Object
 Private i_d     As Object
 
+Private ad As Object
+
 Public Function setSheet(ByVal s As Object)
     Set os = s
     
@@ -53,6 +55,8 @@ Public Function setSheet(ByVal s As Object)
     Set s10m = os.Range("H2")
     Set s1h = os.Range("I2")
     Set i_d = os.Range("D2")
+    
+    Set ad = os.Range("J2")
 
 End Function
 
@@ -107,6 +111,7 @@ Public Function newStation(ByVal s As Object)
     os.Range("H1").Value = "10m sheet"
     os.Range("I1").Value = "1h sheet"
 
+    os.Range("J1").Value = "AirDensity"
 End Function
 
 
@@ -264,6 +269,12 @@ Public Function newRation(r As Double, s As Double, i As Double, x As Integer, y
     
 End Function
 
-
+' AirDensity
+Public Property Get AirDensity() As Double
+    AirDensity = ad.Value
+End Property
+Public Property Let AirDensity(ByVal v As Double)
+    ad.Value = v
+End Property
 
 

@@ -7,6 +7,8 @@ Private Const cfpn As String = "E1" ' 提示
 Private Const preRaw As String = "raw" ' 表名前缀
 
 Sub 选择文件()
+    系统初始化
+    
     Dim fd  As Object
     Dim fp As String
     Dim sn As String ' sheet name
@@ -87,11 +89,11 @@ End Function
 Sub 移除原始数据()
     Application.DisplayAlerts = False
     
-    Dim s
+    Dim st
 del:
     For Each s In Sheets
-        If InStr(1, s.Name, preRaw, 1) > 0 Then
-            s.Delete
+        If InStr(1, st.Name, preRaw, 1) > 0 Then
+            st.Delete
             GoTo del
         End If
     Next

@@ -1,39 +1,40 @@
 Attribute VB_Name = "读取SDR"
-
 ' SDR格式数据读取
-Function decSDR(rs As Object)
-    Dim s As Station
-    Set s = New Station
-    
-    Dim Site As String
 
-    Site = "site" & rs.Range("B9").Value
+Private Const pov As String = "B1" ' Version单元格
+Private Const pos As String = "B9" ' site.site单元格
+Private Const pres As String = "site" ' site表前缀
+Private Const pred As String = "data" ' data表前缀
+
+Function decSDR(rst As Object)
+    Dim s As Station: Set s = New Station
     
-    If sheetExist(Site) Then
-        s.setSheet Sheets(Site)
+    Dim sn As String: sn = pres & rst.Range(pos).Value
+    
+    If sheetExist(sn) Then
+        s.setSheet Sheets(sn)
     Else
         Sheets.Add after:=Sheets(Sheets.Count)
-        ActiveSheet.Name = Site
-        s.newStation Sheets(Site)
+        ActiveSheet.Name = sn
+        s.newStation ActiveSheet
         
-        decInfoSDR rs, s
-        
-        s.id = s.Site.Site
+        decInfoSDR rst, s
     End If
     
-    rs.Copy after:=Sheets(Sheets.Count)
-    ActiveSheet.Name = "data" + s.id
+    rst.Copy after:=Sheets(Sheets.Count)
+    ActiveSheet.Name = pred + s.id
     Rows("1:" & (s.DataStart - 1)).Delete shift:=xlUp
+    
     adjustData ActiveSheet, s
-
     addStation s
 End Function
 
 Private Function decInfoSDR(rs As Object, s As Object)
     s.System = "SDR"
-    s.Version = rs.Range("B1").Value
-    
-    Dim ss As Object
+    s.Version = rs.Range(pov).Value
+
+    Dim reISH As Object: Set reISH = CreateObject("vbscript.regexp")
+    reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
 
     Dim i As Single
     For i = 1 To rs.UsedRange.Rows.Count
@@ -60,7 +61,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
 
             i = i + 9
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Channel", 1) > 0 Then
-            Set ss = s.newSensor
+            Dim ss As Object: Set ss = s.newSensor
             With ss
                 .channel = rs.Cells(i, 2).Value
                 .cat = rs.Cells(i + 1, 2).Value
@@ -70,7 +71,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
                 .ScaleFactor = rs.Cells(i + 6, 2).Value
                 .Offset = rs.Cells(i + 7, 2).Value
                 .Units = rs.Cells(i + 8, 2).Value
-                .Avg = (rs.Cells(i, 2).Value - 1) * 4 + 2
+                .avg = (rs.Cells(i, 2).Value - 1) * 4 + 2
                 .Sd = (rs.Cells(i, 2).Value - 1) * 4 + 3
                 .Min = (rs.Cells(i, 2).Value - 1) * 4 + 4
                 .Max = (rs.Cells(i, 2).Value - 1) * 4 + 5
@@ -104,8 +105,8 @@ Private Function decInfoSDR(rs As Object, s As Object)
             s.DataStart = i
             Exit For
         End If
-    
     Next i
     
+    s.id = s.Site.Site
 End Function
 

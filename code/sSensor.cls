@@ -137,10 +137,10 @@ Public Property Let NotInstalled(ByVal v As Boolean)
 End Property
 
 ' Avg
-Public Property Get Avg() As Integer
-    Avg = av.Value
+Public Property Get avg() As Integer
+    avg = av.Value
 End Property
-Public Property Let Avg(ByVal v As Integer)
+Public Property Let avg(ByVal v As Integer)
     av.Value = v
 End Property
 

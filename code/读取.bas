@@ -1,11 +1,14 @@
 Attribute VB_Name = "读取"
 
-Public reISH    As Object   ' info sensor height
+
+
+
 Public re1      As Object   ' 判断时间正则1:
 Public re2      As Object   ' 判断时间正则2:
 Public re3      As Object
 
 Sub 读取数据()
+    系统初始化
     initRead
     
     Dim st As Object
@@ -22,7 +25,6 @@ Sub 读取数据()
         
         sensorClassfy s
     Next
-    
 End Sub
 
 Sub 生成1h()
@@ -50,8 +52,7 @@ End Sub
 
 ' 设定正则
 Function initRead()
-    Set reISH = CreateObject("vbscript.regexp")
-    reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
+
 
     Set re1 = CreateObject("vbscript.regexp")
     re1.Pattern = "(\d{4})[\/|-](\d{1,2})[\/|-](\d{1,2})(\s\w+|)\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
@@ -63,17 +64,13 @@ Function initRead()
     re3.Pattern = "^""?(\d{4})[\-|\/](\d{1,2})[\-|\/](\d{1,2})""?$"
 End Function
 
-Function decRaw(s As Object)
-    Dim v
-    v = s.Range("A1").Value
+Function decRaw(st As Object)
+    Dim v: v = st.Range("A1").Value
     
     If InStr(1, v, "SDR", 1) > 0 Then
-
-        decSDR s
-        'decDataSDR decInfoSDR
+        decSDR st
     ElseIf InStr(1, v, "Multi-Track Export -", 1) > 0 Then
-        decNomad s
-        'decDataNomad decInfoNomad
+        decNomad st
     End If
 End Function
 
@@ -243,8 +240,8 @@ Function adjustRTimes(sn As String, ss As Object, t As Double)
 
         Set ds = Sheets(sn)
         For i = 2 To ds.Rows.Count
-            If ss.Avg > 0 Then
-                ds.Cells(i, ss.Avg).Value = ds.Cells(i, ss.Avg).Value * t
+            If ss.avg > 0 Then
+                ds.Cells(i, ss.avg).Value = ds.Cells(i, ss.avg).Value * t
             End If
 
             If ss.Max > 0 Then
@@ -264,8 +261,8 @@ Function adjustRF(sn As String, ss As Object)
     If sn <> "" And sheetExist(sn) Then
         Set ds = Sheets(sn)
         For i = 2 To ds.Rows.Count
-            If ss.Avg > 0 Then
-                ds.Cells(i, ss.Avg).Value = (ds.Cells(i, ss.Avg).Value - 32) / 1.8
+            If ss.avg > 0 Then
+                ds.Cells(i, ss.avg).Value = (ds.Cells(i, ss.avg).Value - 32) / 1.8
             End If
             
             If ss.Max > 0 Then
