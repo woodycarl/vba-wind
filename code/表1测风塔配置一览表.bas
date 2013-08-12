@@ -49,19 +49,19 @@ Function showInfo(s As Station, ds As Object)
     For Each Key In s.SensorsR.Keys
         Set ss = s.SensorsR(Key)
         
-        If ss.Height > maxH Then
-            maxH = ss.Height
+        If ss.height > maxH Then
+            maxH = ss.height
         End If
         
         Select Case ss.Units
             Case "m/s", "mph"
                 wv.Add ss.channel, ss
 
-                addInfoSensor ds, i, ss.channel, ss.Height, "风速 (m/s)"
+                addInfoSensor ds, i, ss.channel, ss.height, "风速 (m/s)"
                 i = i + 1
             Case "deg", "Degrees"
                 wd.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.Height, "风向 (度)"
+                addInfoSensor ds, i, ss.channel, ss.height, "风向 (度)"
                 i = i + 1
             Case "Volts", "v"
                 vol.Add ss.channel, ss
@@ -69,11 +69,11 @@ Function showInfo(s As Station, ds As Object)
                 h.Add ss.channel, ss
             Case "C", "Degrees F"
                 t.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.Height, "气温 (℃)"
+                addInfoSensor ds, i, ss.channel, ss.height, "气温 (℃)"
                 i = i + 1
             Case "kPa", "mb", "mB"
                 p.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.Height, "气压 (kpa)"
+                addInfoSensor ds, i, ss.channel, ss.height, "气压 (kpa)"
                 i = i + 1
         End Select
         

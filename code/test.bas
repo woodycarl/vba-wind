@@ -2,8 +2,5 @@ Attribute VB_Name = "test"
 
     
 Sub test()
-
-    
-    
-    MsgBox "x"
+    SendKeys "^{PGdn}"
 End Sub

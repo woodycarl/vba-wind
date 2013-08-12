@@ -122,7 +122,7 @@ Function addLinestChart(r As Object, st As Object) As Object
     End With
     
     With addLinestChart.Parent
-         .Height = 200 ' resize
+         .height = 200 ' resize
          .Width = 250  ' resize
          .Top = 0    ' reposition
          .Left = 0   ' reposition

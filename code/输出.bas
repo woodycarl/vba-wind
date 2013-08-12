@@ -5,144 +5,255 @@ Sub 生成报表()
     
     For Each k In Stations
         Dim s As Object: Set s = Stations(k)
-        'initCal s
+        calAirDensity s
         showResult s
     Next
     
 End Sub
+
+Private Function initCal(s As Object)
+    
+    calAirDensity s ' 计算空气密度
+    
+    
+    Dim rst As Object: Set rst = Sheets(s.Sheet1h)
+    
+    Dim dst As Object: Set dst = Sheets.Add(after:=Sheets(Sheets.Count))
+    dst.Name = "result" + s.id
+    s.Result = dst.Name
+
+    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim a: a = wvs.Items
+    Dim ss As Object
+    
+    ' 增加必要的数据列
+    Dim maxX As Integer: maxX = rst.UsedRange.Rows.Count
+    Dim maxY As Integer: maxY = rst.UsedRange.Columns.Count
+    
+        'month
+    Dim cellM As Object: Set cellM = rst.Cells(1, maxY + 1)
+    Dim cellMF As Object: Set cellMF = cellM.Offset(1, 0)
+    Dim cellML As Object: Set cellML = cellM.Offset(maxX - 1, 0)
+    cellM.Value = "Month"
+    cellMF.Formula = "=month(A2)"
+    cellMF.AutoFill Destination:=rst.Range(cellMF.Address + ":" + cellML.Address)
+        'hour
+    maxY = rst.UsedRange.Columns.Count
+    Dim cellH As Object: Set cellH = rst.Cells(1, maxY + 1)
+    Dim cellHF As Object: Set cellHF = cellH.Offset(1, 0)
+    Dim cellHL As Object: Set cellHL = cellH.Offset(maxX - 1, 0)
+    cellH.Value = "Hour"
+    cellHF.Formula = "=hour(A2)"
+    cellHF.AutoFill Destination:=rst.Range(cellHF.Address + ":" + cellHL.Address)
+        'wp
+    maxY = rst.UsedRange.Columns.Count
+    For j = 0 To wvs.Count - 1
+        Set ss = a(j)
+        
+        Dim cellWp As Object: Set cellWp = rst.Cells(1, maxY + 1 + j)
+        Dim cellWpF As Object: Set cellWpF = cellWp.Offset(1, 0)
+        Dim cellWpL As Object: Set cellWpL = cellWp.Offset(maxX - 1, 0)
+        cellWp.Value = "CH" + ss.channel + "WP"
+        cellWpF.Formula = "=" + CStr(s.AirDensity) + "*POWER(" + Replace(rst.Cells(2, ss.avg).Address, "$", "") + ",3)/2" ' =10*POWER(B2,3)/2
+        cellWpF.AutoFill Destination:=rst.Range(cellWpF.Address + ":" + cellWpL.Address)
+    Next
+        'wfre
+    maxY = rst.UsedRange.Columns.Count
+    For j = 0 To wvs.Count - 1
+        Set ss = a(j)
+        
+        Dim cellWfv As Object: Set cellWfv = rst.Cells(1, maxY + 1 + j)
+        Dim cellWfvF As Object: Set cellWfvF = cellWfv.Offset(1, 0)
+        Dim cellWfvL As Object: Set cellWfvL = cellWfv.Offset(maxX - 1, 0)
+        Dim wfvA As String: wfvA = Replace(rst.Cells(2, ss.avg).Address, "$", "")
+        cellWfv.Value = "CH" + ss.channel + "Wfv"
+        cellWfvF.Formula = "=IF(" + wfvA + "<=0.5,0.5, ROUND(" + wfvA + ",0))"
+        cellWfvF.AutoFill Destination:=rst.Range(cellWfvF.Address + ":" + cellWfvL.Address)
+    Next
+        'windrose
+    maxY = rst.UsedRange.Columns.Count
+    Dim wds As Object: Set wds = s.Sensors("wd")
+    Dim ad: ad = wds.Items
+    Dim ssd As Object
+    For j = 0 To wds.Count - 1
+        Set ssd = ad(j)
+        
+        Dim cellWr As Object: Set cellWr = rst.Cells(1, maxY + 1 + j)
+        cellWr.Value = "CH" + ssd.channel + "Wr"
+        
+        For i = 2 To maxX
+            rst.Cells(i, maxY + 1 + j).Value = wr(rst.Cells(i, ssd.avg).Value)
+        Next
+    Next
+    
+    maxY = rst.UsedRange.Columns.Count
+    
+    Dim cellL As Object: Set cellL = rst.Cells(maxX, maxY)
+    cellM.Address ":" + cellL.Address
+End Function
 
 Private Function showResult(s As Object)
     Dim rst As Object: Set rst = Sheets(s.Sheet1h)
     
     Dim dst As Object: Set dst = Sheets.Add(after:=Sheets(Sheets.Count))
     dst.Name = "result" + s.id
-    
-    dst.Range("A1").Value = "数据日期" + Format(s.StartTime, "yyyy年mm月dd日") + "～" + Format(s.EndTime, "yyyy年mm月dd日")
 
-
-    ' 1
-    dst.Range("A2").Value = "1、代表年不同高度月平均风速"
-    
-    With dst.Range("A3:B3")
-        .HorizontalAlignment = xlCenter
-        .Merge
-        .Value = "时间 (月)"
-    End With
-    
     Dim wvs As Object: Set wvs = s.Sensors("wv")
     Dim a: a = wvs.Items
-
-    rst.Columns("A:A").NumberFormatLocal = "m"
-    rst.Range("A1").AutoFilter
+    Dim ss As Object
     
-    Dim i As Integer
-    Dim indexy As Integer: indexy = 1
-    For i = 1 To 12
-        rst.UsedRange.AutoFilter Field:=1, Criteria1:="=" + CStr(i), _
-            Operator:=xlAnd
+    ' 增加必要的数据列
+    Dim maxX As Integer: maxX = rst.UsedRange.Rows.Count
+    Dim maxY As Integer: maxY = rst.UsedRange.Columns.Count
+    
+        'month
+    Dim cellM As Object: Set cellM = rst.Cells(1, maxY + 1)
+    Dim cellMF As Object: Set cellMF = cellM.Offset(1, 0)
+    Dim cellML As Object: Set cellML = cellM.Offset(maxX - 1, 0)
+    cellM.Value = "Month"
+    cellMF.Formula = "=month(A2)"
+    cellMF.AutoFill Destination:=rst.Range(cellMF.Address + ":" + cellML.Address)
+        'hour
+    maxY = rst.UsedRange.Columns.Count
+    Dim cellH As Object: Set cellH = rst.Cells(1, maxY + 1)
+    Dim cellHF As Object: Set cellHF = cellH.Offset(1, 0)
+    Dim cellHL As Object: Set cellHL = cellH.Offset(maxX - 1, 0)
+    cellH.Value = "Hour"
+    cellHF.Formula = "=hour(A2)"
+    cellHF.AutoFill Destination:=rst.Range(cellHF.Address + ":" + cellHL.Address)
+        'wp
+    maxY = rst.UsedRange.Columns.Count
+    For j = 0 To wvs.Count - 1
+        Set ss = a(j)
         
-        If rst.Range("A1").CurrentRegion.Rows.Count <= 2 Then
-            GoTo notEnouthData
+        Dim cellWp As Object: Set cellWp = rst.Cells(1, maxY + 1 + j)
+        Dim cellWpF As Object: Set cellWpF = cellWp.Offset(1, 0)
+        Dim cellWpL As Object: Set cellWpL = cellWp.Offset(maxX - 1, 0)
+        cellWp.Value = "CH" + ss.channel + "WP"
+        cellWpF.Formula = "=" + CStr(s.AirDensity) + "*POWER(" + Replace(rst.Cells(2, ss.avg).Address, "$", "") + ",3)/2" ' =10*POWER(B2,3)/2
+        cellWpF.AutoFill Destination:=rst.Range(cellWpF.Address + ":" + cellWpL.Address)
+    Next
+        'wfre
+    maxY = rst.UsedRange.Columns.Count
+    For j = 0 To wvs.Count - 1
+        Set ss = a(j)
+        
+        Dim cellWfv As Object: Set cellWfv = rst.Cells(1, maxY + 1 + j)
+        Dim cellWfvF As Object: Set cellWfvF = cellWfv.Offset(1, 0)
+        Dim cellWfvL As Object: Set cellWfvL = cellWfv.Offset(maxX - 1, 0)
+        Dim wfvA As String: wfvA = Replace(rst.Cells(2, ss.avg).Address, "$", "")
+        cellWfv.Value = "CH" + ss.channel + "Wfv"
+        cellWfvF.Formula = "=IF(" + wfvA + "<=0.5,0.5, ROUND(" + wfvA + ",0))"
+        cellWfvF.AutoFill Destination:=rst.Range(cellWfvF.Address + ":" + cellWfvL.Address)
+    Next
+        'windrose
+    maxY = rst.UsedRange.Columns.Count
+    Dim wds As Object: Set wds = s.Sensors("wd")
+    Dim ad: ad = wds.Items
+    Dim ssd As Object
+    For j = 0 To wds.Count - 1
+        Set ssd = ad(j)
+        
+        Dim cellWr As Object: Set cellWr = rst.Cells(1, maxY + 1 + j)
+        cellWr.Value = "CH" + ssd.channel + "Wr"
+        
+        For i = 2 To maxX
+            rst.Cells(i, maxY + 1 + j).Value = wr(rst.Cells(i, ssd.avg).Value)
+        Next
+    Next
+
+
+    
+    maxY = rst.UsedRange.Columns.Count
+    
+    Dim cellL As Object: Set cellL = rst.Cells(maxX, maxY)
+    
+    oTemp.UsedRange.Clear
+
+    ' 增加数据透视表
+    Dim rangeR As String: rangeR = rst.Name + "!A1:" + cellL.Address
+    oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+        rangeR, Version:=xlPivotTableVersion14). _
+        CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
+        DefaultVersion:=xlPivotTableVersion14
+    Dim pt As Object: Set pt = oTemp.PivotTables("pt")
+    
+    ' 首行
+    Dim pc As Object: Set pc = dst.Range("A1")
+    Dim index As Integer
+    pc.Value = "数据日期" + Format(s.StartTime, "yyyy年mm月dd日") + "～" + Format(s.EndTime, "yyyy年mm月dd日")
+
+
+
+
+    ' 1、代表年不同高度月平均风速
+    Set pc = pc.Offset(1, 0)
+    pc.Value = "1、代表年不同高度月平均风速"
+    showAvg rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, _
+        unit:="风速 (m/s)", cat:="Avg"
+
+    ' 2、代表年不同高度月平均风功率密度
+    Set pc = dst.Cells(dst.UsedRange.Rows.Count + 17, 1)
+    pc.Value = "2、代表年不同高度月平均风功率密度"
+    showAvg rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, _
+        unit:="风功率密度 (W/m2)", cat:="WP"
+
+    ' 3、代表年不同高度小时平均风速
+    Set pc = dst.Cells(dst.UsedRange.Rows.Count + 17, 1)
+    pc.Value = "3、代表年不同高度小时平均风速"
+    showAvgH rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, _
+        unit:="风速 (m/s)", cat:="Avg"
+
+    ' 4、代表年不同高度小时平均风功率密度
+    Set pc = dst.Cells(dst.UsedRange.Rows.Count + 17, 1)
+    pc.Value = "4、代表年不同高度小时平均风功率密度"
+    showAvgH rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, _
+        unit:="风功率密度 (W/m2)", cat:="WP"
+        
+    ' 5、不同高度风速和风能频率分布
+    Set pc = dst.Cells(dst.UsedRange.Rows.Count + 17, 1)
+    pc.Value = "5、不同高度风速和风能频率分布"
+    showWfvs rst:=rst, dst:=dst, s:=s, po:=pc.Offset(1, 0), pt:=pt
+
+
+    ' 6、代表年的全年风向、风能频率分布玫瑰图
+    Set pc = dst.Cells(dst.UsedRange.Rows.Count + 17, 1)
+    pc.Value = "6、代表年的全年风向、风能频率分布玫瑰图"
+    showWindroses rst, dst, s, pc.Offset(1, 0), pt
+    
+    '7、 代表年的不同高度风频曲线及威布尔参数
+    
+    
+
+    'Exit Function
+    ' 清除数据透视表，删除增加数据列
+    oTemp.Range(pt.TableRange2.Address).Delete Shift:=xlUp
+    rst.Range(cellM.Address + ":" + cellL.Address).Clear
+    
+End Function
+
+
+' 从传感器集合中选取指定高度的一个传感器
+' >>>需要增加含有多个相同高度时的判别方法：例如相关性等
+Private Function getSSbyH(sss As Scripting.Dictionary, h As Double) As Object
+    Dim ss As Object
+    For Each k In sss
+        Dim sst As Object: Set sst = sss(k)
+        If sst.height = h Then
+            Set getSSbyH = sst
+            Exit Function
         End If
         
-        dst.Cells(3, indexy + 2).Value = i
-        
-        oTemp.UsedRange.Clear
-        rst.Range("A1").CurrentRegion.Copy
-        oTemp.Select
-        Range("A1").Select
-        oTemp.Paste
-        Range("A1").Select
-    
-        For j = 0 To wvs.Count - 1
-            Dim ss As Object: Set ss = a(j)
-
-            If dst.Cells(4 + j, 2).Value = "" Then
-                dst.Cells(4 + j, 2).Value = CStr(ss.Height) + "m"  '"CH" + ss.channel + " " +
-            End If
-            
-            Dim rangei As Object: Set rangei = oTemp.Range(arrCol(CInt(ss.channel)))
-            Dim avg As Double: avg = Application.WorksheetFunction.Average(rangei)
-            
-            dst.Cells(4 + j, indexy + 2).Value = avg
-        Next
-        
-notEnouthData:
-        indexy = indexy + 1
-    Next i
-    
-    dst.Cells(3, indexy + 2).Value = "平均"
-    For j = 0 To wvs.Count - 1
-        Dim rangej As Object: Set rangej = dst.Range(dst.Cells(4 + j, 3).Address + ":" + dst.Cells(4 + j, indexy + 1).Address)
-        dst.Cells(4 + j, indexy + 2).Value = Application.WorksheetFunction.Average(rangej)
+        If ss Is Nothing Then
+            Set ss = sst
+        ElseIf Abs(ss.height - height) > Abs(sst.height - height) Then
+            Set ss = sst
+        End If
     Next
-    rst.Range("A1").AutoFilter
-    
-    Dim range3 As Object: Set range3 = dst.Range(dst.Cells(4, 3).Address + ":" + dst.Cells(3 + wvs.Count, indexy + 2).Address)
-    range3.NumberFormatLocal = "0.00_ "
 
-    With dst.Range("A4:A" + CStr(j + 3))
-        .HorizontalAlignment = xlCenter
-        .VerticalAlignment = xlCenter
-        .WrapText = True
-        .Merge
-    End With
-    dst.Range("A4").Value = "风速 (m/s)"
-
-    Dim range4 As Object: Set range4 = dst.Range(dst.Cells(4, 2).Address + ":" + dst.Cells(3 + wvs.Count, indexy + 1).Address)
-    Dim range5 As String: range5 = dst.Cells(3, 3).Address + ":" + dst.Cells(3, indexy + 1).Address
-    Dim wvavgChart As Object: Set wvavgChart = dst.Shapes.AddChart.Chart
-    With wvavgChart
-        .ChartType = xlLine
-        .SetSourceData Source:=range4
-        
-        With .Legend
-            .Position = xlTop
-        End With
-        
-        .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue, xlPrimary).AxisTitle.Text = "风速 (m/s)"
-        .Axes(xlCategory).HasTitle = True
-        With .Axes(xlCategory).AxisTitle
-            .Format.TextFrame2.TextRange.Characters.Text = "月份"
-        End With
-        
-        .SeriesCollection(1).XValues = "=" + dst.Name + "!" + range5
-    End With
-    With wvavgChart.Parent
-         .Height = 200  ' resize
-         .Width = 550   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
-    End With
-
-    wvavgChart.Parent.Cut
-    dst.Select
-    dst.Cells(5 + j, 1).Select
-    dst.Pictures.Paste.Select
-    
-    
-    '2
-    dst.Cells(20 + j, 1).Value = "2、代表年不同高度月平均风功率密度"
-    
-    
-    
+    Set getSSbyH = ss
 End Function
 
-Sub testCal()
-    系统初始化
-    
-    For Each k In Stations
-        Dim s As Object: Set s = Stations(k)
-        initCal s
-
-    Next
-End Sub
-
-Private Function initCal(s As Object)
-    calAirDensity s
-    
-End Function
 
 Private Function calAirDensity(s As Object)
     Dim ts As Object: Set ts = s.Sensors("t")
@@ -166,7 +277,7 @@ Private Function calAirDensity(s As Object)
             s.AirDensity = p * 1000 / (287 * (t + 273))
             
         Else
-            s.AirDensity = (353.05 / t) * Exp((-0.034) * (Height / (t + 273)))
+            s.AirDensity = (353.05 / t) * Exp((-0.034) * (height / (t + 273)))
         End If
     Else
         s.AirDensity = oConfig.AirDensity

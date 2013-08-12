@@ -31,6 +31,9 @@ Private i_d     As Object
 
 Private ad As Object
 
+Private crp As Object
+Private dst As Object
+
 Public Function setSheet(ByVal s As Object)
     Set os = s
     
@@ -57,6 +60,9 @@ Public Function setSheet(ByVal s As Object)
     Set i_d = os.Range("D2")
     
     Set ad = os.Range("J2")
+    
+    Set dst = os.Range("K2")
+    Set crp = os.Range("L2")
 
 End Function
 
@@ -112,8 +118,28 @@ Public Function newStation(ByVal s As Object)
     os.Range("I1").Value = "1h sheet"
 
     os.Range("J1").Value = "AirDensity"
+    
+    os.Range("K1").Value = "Result"
+    os.Range("L1").Value = "CurRePo"
+    
+    crp.Value = "A1"
 End Function
 
+' Result
+Public Property Get Result() As String
+    Result = dst.Value
+End Property
+Public Property Let Result(ByVal v As String)
+    dst.Value = v
+End Property
+
+' CurRePo
+Public Property Get CurRePo() As String
+    CurRePo = crp.Value
+End Property
+Public Property Let CurRePo(ByVal v As String)
+    crp.Value = v
+End Property
 
 ' system
 Public Property Get System() As String
@@ -264,7 +290,7 @@ Public Function newRation(r As Double, s As Double, i As Double, x As Integer, y
         .Rsq = r
         .Slope = s
         .Intercept = i
-        .Index = id
+        .index = id
     End With
     
 End Function

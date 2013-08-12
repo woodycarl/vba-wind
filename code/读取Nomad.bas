@@ -67,7 +67,7 @@ Function decInfoNomad(rs As Object, s As Object)
                     With ss
                         .Description = mymatch(0)
                         .Units = mymatch(1)
-                        .Height = mymatch(3)
+                        .height = mymatch(3)
                         .cat = mymatch(7)
                         .Col = j
                     End With
@@ -111,7 +111,7 @@ Function getSfSN(s As Object, ns As Collection)
             
             Set ss = s.newSensor
             With ss
-                .Height = n.Height
+                .height = n.height
                 .Description = n.Description
                 .Units = n.Units
                 .channel = k
@@ -148,7 +148,7 @@ Function existSN(ss As Scripting.Dictionary, n As NomadSensor) As String
 End Function
 
 Function isSameNomadSensor(s As sSensor, n As NomadSensor) As Boolean
-    If s.Height = n.Height And s.Description = n.Description And s.Units = n.Units Then
+    If s.height = n.height And s.Description = n.Description And s.Units = n.Units Then
         isSameNomadSensor = True
         Exit Function
     End If
@@ -180,10 +180,10 @@ Function decDataNomad(rs As Object, s As Object, ds As Object)
 
     For Each k In s.SensorsR
         Set ss = s.SensorsR(k)
-        ds.Cells(1, (i - 1) * 4 + 2).Value = "CH" + CStr(i) + "AVG"
+        ds.Cells(1, (i - 1) * 4 + 2).Value = "CH" + CStr(i) + "Avg"
         ds.Cells(1, (i - 1) * 4 + 3).Value = "CH" + CStr(i) + "SD"
-        ds.Cells(1, (i - 1) * 4 + 4).Value = "CH" + CStr(i) + "MAX"
-        ds.Cells(1, (i - 1) * 4 + 5).Value = "CH" + CStr(i) + "MIN"
+        ds.Cells(1, (i - 1) * 4 + 4).Value = "CH" + CStr(i) + "Max"
+        ds.Cells(1, (i - 1) * 4 + 5).Value = "CH" + CStr(i) + "Min"
         
         If ss.avg > 0 Then
             x = rs.Cells(s.DataStart, ss.avg).Address

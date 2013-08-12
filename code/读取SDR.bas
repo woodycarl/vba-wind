@@ -23,7 +23,7 @@ Function decSDR(rst As Object)
     
     rst.Copy after:=Sheets(Sheets.Count)
     ActiveSheet.Name = pred + s.id
-    Rows("1:" & (s.DataStart - 1)).Delete shift:=xlUp
+    Rows("1:" & (s.DataStart - 1)).Delete Shift:=xlUp
     
     adjustData ActiveSheet, s
     addStation s
@@ -92,10 +92,10 @@ Private Function decInfoSDR(rs As Object, s As Object)
             If mymatches.Count >= 1 Then
                 Set mymatch = mymatches(0)
                 If mymatch.SubMatches.Count >= 2 Then
-                    ss.Height = mymatch.SubMatches(0)
+                    ss.height = mymatch.SubMatches(0)
         
                     If mymatch.SubMatches(1) = "ft" Then
-                        ss.Height = ss.Height * 0.3048
+                        ss.height = ss.height * 0.3048
                     End If
                 End If
             End If

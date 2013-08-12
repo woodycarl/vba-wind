@@ -97,10 +97,10 @@ Public Property Let SerialNumber(ByVal v As String)
 End Property
 
 ' Height
-Public Property Get Height() As Single
-    Height = h.Value
+Public Property Get height() As Single
+    height = h.Value
 End Property
-Public Property Let Height(ByVal v As Single)
+Public Property Let height(ByVal v As Single)
     h.Value = v
 End Property
 

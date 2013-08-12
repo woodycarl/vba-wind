@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
-Public Height      As Single
+Public height      As Single
 Public Description As String
 Public Units       As String
 Public cat         As String
