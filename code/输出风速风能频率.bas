@@ -1,22 +1,47 @@
 Attribute VB_Name = "输出风速风能频率"
 
-
-Function showWfvs(rst As Object, dst As Object, s As Object, po As Object, pt As Object)
-    pt.ClearTable
+Sub 计算风速风能频率()
+    系统初始化
     
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
-    Dim a: a = wvs.Items
-    For j = 0 To wvs.Count - 1
-        Dim ss As Object: Set ss = a(j)
+    For Each k In Stations
+        Dim s As Object: Set s = Stations(k)
         
-        showWfv rst:=rst, dst:=dst, s:=s, po:=po, pt:=pt, ss:=ss
+        If s.CurRePo = "A1" Then
+            initCalResult s
+        End If
         
-        Set po = dst.Cells(dst.UsedRange.Rows.Count + 16, 1)
+        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
+        Dim dst As Object: Set dst = Sheets(s.Result)
+
+        oTemp.UsedRange.Clear
+        
+        ' 增加数据透视表
+        oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+            s.DataRange, Version:=xlPivotTableVersion14). _
+            CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
+            DefaultVersion:=xlPivotTableVersion14
+        Dim pt As Object: Set pt = oTemp.PivotTables("pt")
+
+        ' 不同高度风速和风能频率分布
+        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
+        pc.Value = "不同高度风速和风能频率分布"
+        s.CurRePo = pc.Offset(1, 0).Address
+        
+        Dim wvs As Object: Set wvs = s.Sensors("wv")
+        Dim a: a = wvs.Items
+        For j = 0 To wvs.Count - 1
+            Dim ss As Object: Set ss = a(j)
+            
+            Set pc = dst.Range(s.CurRePo)
+            showWfv rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, ss:=ss
+        Next
+
+        ' 清除数据透视表，删除增加的数据列
+        oTemp.Range(pt.TableRange2.Address).Delete Shift:=xlUp
     Next
+End Sub
 
-End Function
-
-Function showWfv(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ss As Object)
+Private Function showWfv(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ss As Object)
     ' 代表年不同高度风速和风能频率分布
 
     pt.ClearTable
@@ -54,11 +79,6 @@ Function showWfv(rst As Object, dst As Object, s As Object, po As Object, pt As 
         .RowGrand = False
     End With
     
-    'pt.PivotSelect "'<=0.5'", xlDataAndLabel + _
-    '    xlFirstRow, True
-    'pt.PivotFields(wfvn).PivotItems("<=0.5"). _
-    '    Position = 1
-        
     Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
     Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
     oTemp.UsedRange.Copy
@@ -70,14 +90,15 @@ Function showWfv(rst As Object, dst As Object, s As Object, po As Object, pt As 
     End If
 
     '乘100显示
-    po.Offset(0, 3).Value = 100
-    po.Offset(0, 3).Copy
-    Dim range4 As Object
-    Set range4 = dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(maxX - 1, maxY - 1).Address)
-    range4.PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
-        SkipBlanks:=False, Transpose:=False
-    range4.NumberFormatLocal = "0.00_ "
-    po.Offset(0, 3).Clear
+    Dim t100 As Object: Set t100 = po.Offset(0, maxY)
+    t100.Value = 100
+    t100.Copy
+    With dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(maxX - 1, maxY - 1).Address)
+        .PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
+                      SkipBlanks:=False, Transpose:=False
+        .NumberFormatLocal = "0.00_ "
+    End With
+    t100.Clear
 
     po.Value = "风速区间(m/s)"
     
@@ -118,6 +139,8 @@ Function showWfv(rst As Object, dst As Object, s As Object, po As Object, pt As 
     range1.NumberFormatLocal = "0.0_ "
     
     pt.ClearTable
+    
+    s.CurRePo = po.Offset(maxX + 16, 0).Address
 
 End Function
 

@@ -106,10 +106,10 @@ End Property
 
 ' UseSetAD
 ' 强制使用空气密度设定值
-Public Property Get UseSetAD() As Boolean
+Public Property Get UseSetAD() As String
     UseSetAD = useS.Value
 End Property
-Public Property Let UseSetAD(ByVal v As Boolean)
+Public Property Let UseSetAD(ByVal v As String)
     useS.Value = v
 End Property
 

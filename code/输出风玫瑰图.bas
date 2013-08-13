@@ -1,25 +1,53 @@
 Attribute VB_Name = "输出风玫瑰图"
 
+Sub 绘制风玫瑰图()
+    系统初始化
+    
+    For Each k In Stations
+        Dim s As Object: Set s = Stations(k)
+        
+        If s.CurRePo = "A1" Then
+            initCalResult s
+        End If
+        
+        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
+        Dim dst As Object: Set dst = Sheets(s.Result)
 
-Function showWindroses(rst As Object, dst As Object, s As Object, po As Object, pt As Object)
-    Dim wds As Object: Set wds = s.Sensors("wd")
-    Dim ad: ad = wds.Items
-    
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
-    Dim av: av = wvs.Items
-    
-    For i = 0 To wvs.Count - 1
-        Dim ssv As Object: Set ssv = av(i)
-        Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
+        oTemp.UsedRange.Clear
         
-        showWindrose rst, dst, s, po, pt, ssv, ssd
+        ' 增加数据透视表
+        oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+            s.DataRange, Version:=xlPivotTableVersion14). _
+            CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
+            DefaultVersion:=xlPivotTableVersion14
+        Dim pt As Object: Set pt = oTemp.PivotTables("pt")
+
+        ' 代表年的全年风向、风能频率分布玫瑰图
+        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
+        pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
+        s.CurRePo = pc.Offset(1, 0).Address
         
-        Set po = po.Offset(25, 0)
+        Dim wds As Object: Set wds = s.Sensors("wd")
+        Dim ad: ad = wds.Items
+        
+        Dim wvs As Object: Set wvs = s.Sensors("wv")
+        Dim av: av = wvs.Items
+        
+        For i = 0 To wvs.Count - 1
+            Dim ssv As Object: Set ssv = av(i)
+            Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
+            
+            Set pc = dst.Range(s.CurRePo)
+            showWindrose rst, dst, s, pc, pt, ssv, ssd
+        Next
+
+        ' 清除数据透视表，删除增加的数据列
+        oTemp.Range(pt.TableRange2.Address).Delete Shift:=xlUp
     Next
-    
-End Function
+End Sub
 
-Function showWindrose(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ssv As Object, ssd As Object)
+
+Private Function showWindrose(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ssv As Object, ssd As Object)
     ' 代表年的16个方位扇区不同高度出现风向、风能频率
     Dim arrWr: arrWr = Array("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N")
     pt.ClearTable
@@ -104,10 +132,12 @@ Function showWindrose(rst As Object, dst As Object, s As Object, po As Object, p
     
     pt.ClearTable
     
+    s.CurRePo = po.Offset(3 + 23, 0).Address
+    
 End Function
 
 
-Function mwr(v As Double) As Double
+Private Function mwr(v As Double) As Double
     If v > 360 Then
         mwr = mwrm(v)
     ElseIf v < 0 Then
@@ -118,7 +148,7 @@ Function mwr(v As Double) As Double
     
 End Function
 
-Function mwrm(v As Double) As Double
+Private Function mwrm(v As Double) As Double
     v = v - 360
     If v > 360 Then
         v = mwrm(v)
@@ -127,7 +157,7 @@ Function mwrm(v As Double) As Double
     mwrm = v
 End Function
 
-Function mwra(v As Double) As Double
+Private Function mwra(v As Double) As Double
     v = v + 360
     If v < 0 Then
         v = mwra(v)
@@ -150,12 +180,9 @@ Function wr(v As Double) As Integer
     
     Dim vv As Double: vv = v / interval
     
-    Dim id As Integer: id = Int(vv)
+    wr = Int(vv)
 
-    If id <> vv Then id = id + 1
-    If id = 17 Then id = 1
-    wr = id
-
-    'wr = arrWr(id)
+    If wr <> vv Then wr = wr + 1
+    If wr = 17 Then wr = 1
 
 End Function

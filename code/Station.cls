@@ -33,6 +33,8 @@ Private ad As Object
 
 Private crp As Object
 Private dst As Object
+Private dn As Object
+Private dr As Object
 
 Public Function setSheet(ByVal s As Object)
     Set os = s
@@ -63,6 +65,8 @@ Public Function setSheet(ByVal s As Object)
     
     Set dst = os.Range("K2")
     Set crp = os.Range("L2")
+    Set dn = os.Range("M2")
+    Set dr = os.Range("N2")
 
 End Function
 
@@ -121,6 +125,8 @@ Public Function newStation(ByVal s As Object)
     
     os.Range("K1").Value = "Result"
     os.Range("L1").Value = "CurRePo"
+    os.Range("M1").Value = "Added Data Address"
+    os.Range("N1").Value = "Data Range"
     
     crp.Value = "A1"
 End Function
@@ -139,6 +145,22 @@ Public Property Get CurRePo() As String
 End Property
 Public Property Let CurRePo(ByVal v As String)
     crp.Value = v
+End Property
+
+' AddedData
+Public Property Get AddedData() As String
+    AddedData = dn.Value
+End Property
+Public Property Let AddedData(ByVal v As String)
+    dn.Value = v
+End Property
+
+' DataRange
+Public Property Get DataRange() As String
+    DataRange = dr.Value
+End Property
+Public Property Let DataRange(ByVal v As String)
+    dr.Value = v
 End Property
 
 ' system
