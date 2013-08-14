@@ -10,6 +10,7 @@ Sub 生成报表()
         计算风速风能频率
         绘制风玫瑰图
         绘制威布尔曲线
+        计算风切变指数
     Next
     
 End Sub
@@ -153,8 +154,8 @@ Private Function calAirDensity(s As Object)
     If ts.Count > 0 Then
         Dim ta: ta = ts.Items
         Dim sst As Object: Set sst = ta(0)
-        Dim ranget As Object: Set ranget = st.Range(arrCol(sst.channel))
-        t = Application.WorksheetFunction.Average(ranget)
+        Dim rangeT As Object: Set rangeT = st.Range(arrCol(sst.channel))
+        t = Application.WorksheetFunction.Average(rangeT)
         
         If ps.Count > 0 Then
             ' 当同时有气温和气压数据时

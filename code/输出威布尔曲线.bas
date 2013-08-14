@@ -127,6 +127,7 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
         End With
         
         .Axes(xlCategory).TickLabelSpacing = 100
+        .Axes(xlCategory).TickMarkSpacing = 100
         .SetElement (msoElementPrimaryValueAxisTitleRotated)
         .Axes(xlValue).TickLabels.NumberFormatLocal = "0_ "
         .Axes(xlValue, xlPrimary).AxisTitle.Text = unit
