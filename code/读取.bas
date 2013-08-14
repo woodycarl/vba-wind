@@ -40,7 +40,7 @@ Sub 生成1h()
             End If
             Info st.id + " no 1h data! gen from 10m data."
             
-            Sheets.Add after:=Sheets(Sheets.Count)
+            Sheets.Add After:=Sheets(Sheets.Count)
             ActiveSheet.Name = "data" + st.id + "1h"
             
             genD1fD2 Sheets(st.Sheet10m), ActiveSheet

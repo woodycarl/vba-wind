@@ -13,14 +13,14 @@ Function decNomad(rs As Object)
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
     Else
-        Sheets.Add after:=Sheets(Sheets.Count)
+        Sheets.Add After:=Sheets(Sheets.Count)
         ActiveSheet.Name = sn
         s.newStation ActiveSheet
         
         decInfoNomad rs, s
     End If
     
-    Sheets.Add after:=Sheets(Sheets.Count)
+    Sheets.Add After:=Sheets(Sheets.Count)
     ActiveSheet.Name = pred + s.id
     
     decDataNomad rs, s, ActiveSheet

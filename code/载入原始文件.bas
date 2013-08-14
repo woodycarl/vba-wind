@@ -52,7 +52,7 @@ Private Function loadData(path As String, SheetName As String)
 
     Sheets(1).Select
     Sheets(1).Name = SheetName
-    Sheets(1).Move after:=oWB.Sheets(oWB.Sheets.Count)
+    Sheets(1).Move After:=oWB.Sheets(oWB.Sheets.Count)
     
     Sheets(SheetName).Select
     Range(cfpn).Value = "FileName"

@@ -14,14 +14,14 @@ Function decSDR(rst As Object)
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
     Else
-        Sheets.Add after:=Sheets(Sheets.Count)
+        Sheets.Add After:=Sheets(Sheets.Count)
         ActiveSheet.Name = sn
         s.newStation ActiveSheet
         
         decInfoSDR rst, s
     End If
     
-    rst.Copy after:=Sheets(Sheets.Count)
+    rst.Copy After:=Sheets(Sheets.Count)
     ActiveSheet.Name = pred + s.id
     Rows("1:" & (s.DataStart - 1)).Delete Shift:=xlUp
     

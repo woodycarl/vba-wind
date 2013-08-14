@@ -44,6 +44,7 @@ Sub 计算风切变指数()
 End Sub
 
 Sub 绘制选定多列的风切变图()
+    系统初始化
     Dim st As Object: Set st = ActiveSheet
     Dim ar: ar = Split(Selection.Address, ",")
     
