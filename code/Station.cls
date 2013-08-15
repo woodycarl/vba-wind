@@ -156,10 +156,10 @@ Public Property Let AddedData(ByVal v As String)
 End Property
 
 ' DataRange
-Public Property Get DataRange() As String
-    DataRange = dr.Value
+Public Property Get dataRange() As String
+    dataRange = dr.Value
 End Property
-Public Property Let DataRange(ByVal v As String)
+Public Property Let dataRange(ByVal v As String)
     dr.Value = v
 End Property
 

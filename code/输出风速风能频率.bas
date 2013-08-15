@@ -17,7 +17,7 @@ Sub 计算风速风能频率()
         
         ' 增加数据透视表
         oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.DataRange, Version:=xlPivotTableVersion14). _
+            s.dataRange, Version:=xlPivotTableVersion14). _
             CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
             DefaultVersion:=xlPivotTableVersion14
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
@@ -29,7 +29,7 @@ Sub 计算风速风能频率()
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
-        For j = 0 To wvs.Count - 1
+        For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
             
             Set pc = dst.Range(s.CurRePo)
@@ -79,8 +79,8 @@ Private Function showWfv(rst As Object, dst As Object, s As Object, po As Object
         .RowGrand = False
     End With
     
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
     oTemp.UsedRange.Copy
     po.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False

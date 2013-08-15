@@ -13,14 +13,14 @@ Function decNomad(rs As Object)
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
     Else
-        Sheets.Add After:=Sheets(Sheets.Count)
+        Sheets.Add After:=Sheets(Sheets.count)
         ActiveSheet.Name = sn
         s.newStation ActiveSheet
         
         decInfoNomad rs, s
     End If
     
-    Sheets.Add After:=Sheets(Sheets.Count)
+    Sheets.Add After:=Sheets(Sheets.count)
     ActiveSheet.Name = pred + s.id
     
     decDataNomad rs, s, ActiveSheet
@@ -34,14 +34,14 @@ Function decInfoNomad(rs As Object, s As Object)
     Dim nss As New Collection
     
     Dim i As Single
-    For i = 1 To rs.UsedRange.Rows.Count
+    For i = 1 To rs.UsedRange.Rows.count
         If InStr(1, rs.Cells(i, 1).Value, "Nomad2 Name", 1) > 0 Then
             Dim reNLS As Object: Set reNLS = CreateObject("vbscript.regexp")
             reNLS.Pattern = "Nomad2\s+Name:\s*(\d+)"
             
             Set mymatches = reNLS.Execute(rs.Cells(i, 1).Value)
             Set mymatch = mymatches(0)
-            If mymatch.SubMatches.Count >= 1 Then
+            If mymatch.SubMatches.count >= 1 Then
                 s.Logger.Serial = mymatch.SubMatches(0)
             End If
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Site Name", 1) > 0 Then
@@ -50,7 +50,7 @@ Function decInfoNomad(rs As Object, s As Object)
             
             Set mymatches = reNSS.Execute(rs.Cells(i, 1).Value)
             Set mymatch = mymatches(0)
-            If mymatch.SubMatches.Count >= 1 Then
+            If mymatch.SubMatches.count >= 1 Then
                 s.Site.Site = mymatch.SubMatches(0)
             End If
         ElseIf InStr(1, rs.Cells(i, 1).Value, "TimeStamp", 1) > 0 Then
@@ -58,9 +58,9 @@ Function decInfoNomad(rs As Object, s As Object)
             reNSr.Pattern = "^([^\(]+)\((.+)\)(\s+@\s+(\d+)m|)[^\-]*\-\s*(\d+)\s+(min|hour)\s+(Vec\s+|)(Sampl|Averag|Max\sValu|Min\sValu|Std\sDe|Time\sOf\sMa)"
             
             Dim j As Integer
-            For j = 2 To rs.UsedRange.Columns.Count
+            For j = 2 To rs.UsedRange.Columns.count
                 Set mymatches = reNSr.Execute(rs.Cells(i, j).Value)
-                If mymatches.Count > 0 Then
+                If mymatches.count > 0 Then
                     Dim ss As NomadSensor: Set ss = New NomadSensor
 
                     Set mymatch = mymatches(0).SubMatches
@@ -102,12 +102,12 @@ Function getSfSN(s As Object, ns As Collection)
 
 
     Dim i
-    For i = 1 To ns.Count
+    For i = 1 To ns.count
         Set n = ns(i)
 
         k = existSN(s.SensorsR, n)
         If k = "" Then
-            k = CStr(s.SensorsR.Count + 1)
+            k = CStr(s.SensorsR.count + 1)
             
             Set ss = s.newSensor
             With ss
@@ -159,7 +159,7 @@ End Function
 
 Function decDataNomad(rs As Object, s As Object, ds As Object)
     Dim maxX
-    maxX = rs.UsedRange.Rows.Count
+    maxX = rs.UsedRange.Rows.count
     Dim x, y
     
     ' Add Title

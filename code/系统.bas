@@ -16,7 +16,7 @@ Sub 系统初始化()
     Set oRecord = oWB.Sheets("记录")
     Set oTemp = oWB.Sheets("T")
     
-    While oTemp.PivotTables.Count > 0
+    While oTemp.PivotTables.count > 0
         oTemp.Range(oTemp.PivotTables(1).TableRange2.Address).Delete Shift:=xlUp
     Wend
     

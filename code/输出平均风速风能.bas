@@ -20,7 +20,7 @@ Sub 计算平均风速风能()
         
         ' 增加数据透视表
         oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.DataRange, Version:=xlPivotTableVersion14). _
+            s.dataRange, Version:=xlPivotTableVersion14). _
             CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
             DefaultVersion:=xlPivotTableVersion14
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
@@ -70,7 +70,7 @@ Private Function showAvg(rst As Object, dst As Object, s As Object, po As Object
 
     Dim wvs As Object: Set wvs = s.Sensors("wv")
     Dim a: a = wvs.Items
-    For j = 0 To wvs.Count - 1
+    For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
         Dim ssn As String: ssn = "CH" + ss.channel + cat
 
@@ -82,8 +82,8 @@ Private Function showAvg(rst As Object, dst As Object, s As Object, po As Object
         .Position = 1
     End With
 
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
     oTemp.Range("A2:" + oTemp.Cells(maxX, maxY).Address).Copy
     po.Offset(1, 1).PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
@@ -98,7 +98,7 @@ Private Function showAvg(rst As Object, dst As Object, s As Object, po As Object
         .Value = "时间 (月)"
     End With
     
-    With dst.Range(po.Offset(2, 0).Address + ":" + po.Offset(wvs.Count + 1, 0).Address)
+    With dst.Range(po.Offset(2, 0).Address + ":" + po.Offset(wvs.count + 1, 0).Address)
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
         .WrapText = True
@@ -138,12 +138,12 @@ Private Function showAvg(rst As Object, dst As Object, s As Object, po As Object
 
     myChart.Parent.Cut
     dst.Select
-    po.Offset(2 + wvs.Count, 0).Select
+    po.Offset(2 + wvs.count, 0).Select
     dst.Pictures.Paste.Select
     
     pt.ClearTable
     
-    s.CurRePo = po.Offset(2 + wvs.Count + 16, 0).Address
+    s.CurRePo = po.Offset(2 + wvs.count + 16, 0).Address
 End Function
 
 Private Function showAvgH(rst As Object, dst As Object, s As Object, po As Object, pt As Object, cat As String)
@@ -159,7 +159,7 @@ Private Function showAvgH(rst As Object, dst As Object, s As Object, po As Objec
 
     Dim wvs As Object: Set wvs = s.Sensors("wv")
     Dim a: a = wvs.Items
-    For j = 0 To wvs.Count - 1
+    For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
         Dim ssn As String: ssn = "CH" + ss.channel + cat
 
@@ -171,8 +171,8 @@ Private Function showAvgH(rst As Object, dst As Object, s As Object, po As Objec
         .Position = 1
     End With
 
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
     oTemp.UsedRange.Copy
     po.Offset(2, 0).PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
@@ -189,7 +189,7 @@ Private Function showAvgH(rst As Object, dst As Object, s As Object, po As Objec
         .Value = "时间 (小时)"
     End With
     
-    With dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(1, wvs.Count).Address)
+    With dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(1, wvs.count).Address)
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
         .WrapText = True

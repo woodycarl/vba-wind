@@ -21,7 +21,7 @@ Function initCalResult(s As Object)
     
     Dim rst As Object: Set rst = Sheets(s.Sheet1h)
     
-    Dim dst As Object: Set dst = Sheets.Add(After:=Sheets(Sheets.Count))
+    Dim dst As Object: Set dst = Sheets.Add(After:=Sheets(Sheets.count))
     dst.Name = "result" + s.id
     s.Result = dst.Name
 
@@ -30,8 +30,8 @@ Function initCalResult(s As Object)
     Dim ss As Object
     
     ' 增加必要的数据列
-    Dim maxX As Integer: maxX = rst.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = rst.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = rst.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = rst.UsedRange.Columns.count
     
         'month
     Dim cellM As Object: Set cellM = rst.Cells(1, maxY + 1)
@@ -41,7 +41,7 @@ Function initCalResult(s As Object)
     cellMF.Formula = "=month(A2)"
     cellMF.AutoFill Destination:=rst.Range(cellMF.Address + ":" + cellML.Address)
         'hour
-    maxY = rst.UsedRange.Columns.Count
+    maxY = rst.UsedRange.Columns.count
     Dim cellH As Object: Set cellH = rst.Cells(1, maxY + 1)
     Dim cellHF As Object: Set cellHF = cellH.Offset(1, 0)
     Dim cellHL As Object: Set cellHL = cellH.Offset(maxX - 1, 0)
@@ -49,8 +49,8 @@ Function initCalResult(s As Object)
     cellHF.Formula = "=hour(A2)"
     cellHF.AutoFill Destination:=rst.Range(cellHF.Address + ":" + cellHL.Address)
         'wp
-    maxY = rst.UsedRange.Columns.Count
-    For j = 0 To wvs.Count - 1
+    maxY = rst.UsedRange.Columns.count
+    For j = 0 To wvs.count - 1
         Set ss = a(j)
         
         Dim cellWp As Object: Set cellWp = rst.Cells(1, maxY + 1 + j)
@@ -61,8 +61,8 @@ Function initCalResult(s As Object)
         cellWpF.AutoFill Destination:=rst.Range(cellWpF.Address + ":" + cellWpL.Address)
     Next
         'wfre
-    maxY = rst.UsedRange.Columns.Count
-    For j = 0 To wvs.Count - 1
+    maxY = rst.UsedRange.Columns.count
+    For j = 0 To wvs.count - 1
         Set ss = a(j)
         
         Dim cellWfv As Object: Set cellWfv = rst.Cells(1, maxY + 1 + j)
@@ -74,8 +74,8 @@ Function initCalResult(s As Object)
         cellWfvF.AutoFill Destination:=rst.Range(cellWfvF.Address + ":" + cellWfvL.Address)
     Next
         ' weibull
-    maxY = rst.UsedRange.Columns.Count
-    For j = 0 To wvs.Count - 1
+    maxY = rst.UsedRange.Columns.count
+    For j = 0 To wvs.count - 1
         Set ss = a(j)
         
         Dim cellWb As Object: Set cellWb = rst.Cells(1, maxY + 1 + j)
@@ -89,16 +89,16 @@ Function initCalResult(s As Object)
         ' yyyymmddhh
     If s.Sheet10m <> "" Then
         Dim rst10 As Object: Set rst10 = Sheets(s.Sheet10m)
-        maxY10 = rst10.UsedRange.Columns.Count
-        maxX10 = rst10.UsedRange.Rows.Count
+        maxY10 = rst10.UsedRange.Columns.count
+        maxX10 = rst10.UsedRange.Rows.count
         
         rst10.Cells(1, maxY10 + 1).Value = "HH"
         For j = 2 To maxX10
             rst10.Cells(j, maxY10 + 1).Value = Format(rst10.Cells(j, 1).Value, "yyyymdhh")
         Next j
         
-        maxY10 = rst10.UsedRange.Columns.Count
-        For j = 0 To wvs.Count - 1
+        maxY10 = rst10.UsedRange.Columns.count
+        For j = 0 To wvs.count - 1
             Set ss = a(j)
             
             Dim cellWt As Object: Set cellWt = rst10.Cells(1, maxY10 + j + 1)
@@ -113,11 +113,11 @@ Function initCalResult(s As Object)
         Next
     End If
         'windrose
-    maxY = rst.UsedRange.Columns.Count
+    maxY = rst.UsedRange.Columns.count
     Dim wds As Object: Set wds = s.Sensors("wd")
     Dim ad: ad = wds.Items
     Dim ssd As Object
-    For j = 0 To wds.Count - 1
+    For j = 0 To wds.count - 1
         Set ssd = ad(j)
         
         Dim cellWr As Object: Set cellWr = rst.Cells(1, maxY + 1 + j)
@@ -128,12 +128,12 @@ Function initCalResult(s As Object)
         Next
     Next
     
-    maxY = rst.UsedRange.Columns.Count
+    maxY = rst.UsedRange.Columns.count
     
     Dim cellL As Object: Set cellL = rst.Cells(maxX, maxY)
     
     s.AddedData = cellM.Address + ":" + cellL.Address
-    s.DataRange = rst.Name + "!A1:" + cellL.Address
+    s.dataRange = rst.Name + "!A1:" + cellL.Address
     
     ' 首行
     Dim pc As Object: Set pc = dst.Range(s.CurRePo)
@@ -178,13 +178,13 @@ Private Function calAirDensity(s As Object)
     Dim st As Object: Set st = Sheets(s.Sheet1h)
     
     Dim p, t
-    If ts.Count > 0 Then
+    If ts.count > 0 Then
         Dim ta: ta = ts.Items
         Dim sst As Object: Set sst = ta(0)
         Dim rangeT As Object: Set rangeT = st.Range(arrCol(sst.channel))
         t = Application.WorksheetFunction.Average(rangeT)
         
-        If ps.Count > 0 Then
+        If ps.count > 0 Then
             ' 当同时有气温和气压数据时
             Dim pa: pa = ps.Items
             Dim ssp As Object: Set ssp = pa(0)

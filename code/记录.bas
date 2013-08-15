@@ -6,7 +6,7 @@ Function 记录初始化()
     Set message = oHome.Range("A1")
 
     ' 清除记录
-    oRecord.Range("A2:C" & CStr(oRecord.UsedRange.Rows.Count)).Clear
+    oRecord.Range("A2:C" & CStr(oRecord.UsedRange.Rows.count)).Clear
 
     LoggerIndex = 2
 End Function

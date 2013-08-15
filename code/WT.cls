@@ -19,6 +19,6 @@ Public rs60 As Object
 Public c60 As Double
 Public c10 As Double
 
-Public cn As String ' wt 列名
-Public tn As String ' time 列名
+'Public cn As String ' wt 列名
+'Public tn As String ' time 列名
 

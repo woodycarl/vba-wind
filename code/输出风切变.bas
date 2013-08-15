@@ -13,7 +13,6 @@ Sub 计算风切变指数()
         Dim rst As Object: Set rst = Sheets(s.Sheet1h)
         Dim dst As Object: Set dst = Sheets(s.Result)
 
-
         ' 代表年的不同高度风切变指数
         Dim pc As Object: Set pc = dst.Range(s.CurRePo)
         pc.Value = "代表年的不同高度风切变指数"
@@ -23,23 +22,20 @@ Sub 计算风切变指数()
         Dim a: a = wvs.Items
         
         Dim wss As New Collection
-        For j = 0 To wvs.Count - 1
+        For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
             
-            'Dim th As Double: th = ss.height
-            'Dim avg As Double: avg = Application.WorksheetFunction.Average(rst.Columns(ss.avg))
             Dim twss As WS: Set twss = New WS
             With twss
                 .height = ss.height
                 .avg = Application.WorksheetFunction.Average(rst.Columns(ss.avg))
             End With
             wss.Add twss
-            
         Next j
 
         Set pc = dst.Range(s.CurRePo)
         drawWS wss, dst, pc
-        s.CurRePo = pc.Offset(wss.Count + 17, 0).Address
+        s.CurRePo = pc.Offset(wss.count + 17, 0).Address
     Next
 End Sub
 
@@ -55,18 +51,17 @@ Sub 绘制选定多列的风切变图()
     For i = 0 To UBound(ar)
         Dim tr As Object: Set tr = st.Range(ar(i))
 
-        If tr.Rows.Count >= tr.Columns.Count Then
-            For j = 1 To tr.Columns.Count
+        If tr.Rows.count >= tr.Columns.count Then
+            For j = 1 To tr.Columns.count
                 cArr.Add tr.Columns(j)
             Next j
-        ElseIf tr.Columns.Count > tr.Rows.Count Then
-            For j = 1 To tr.Rows.Count
+        ElseIf tr.Columns.count > tr.Rows.count Then
+            For j = 1 To tr.Rows.count
                 cArr.Add tr.Rows(j)
             Next j
         End If
     Next i
     
-
     For Each c In cArr
         Dim th As Double: th = InputBox("输入序列 " + c.Address + "的高度:")
         Dim avg As Double: avg = Application.WorksheetFunction.Average(c)
@@ -78,7 +73,6 @@ Sub 绘制选定多列的风切变图()
         wss.Add twss
     Next
     
-
     Dim wbn As Object: Set wbn = Workbooks.Add
     Dim dst As Object: Set dst = wbn.Sheets(1)
     Dim dr As Object: Set dr = dst.Range("A1")
@@ -90,17 +84,17 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     dr.Value = "高度"
     dr.Offset(0, 1).Value = "风速 (m/s)"
     
-    For i = 1 To wss.Count
+    For i = 1 To wss.count
         dr.Offset(i, 0).Value = wss(i).height
         dr.Offset(i, 1).Value = wss(i).avg
     Next
     
-    Dim maxX: maxX = dst.UsedRange.Rows.Count
+    Dim maxX: maxX = dst.UsedRange.Rows.count
 
-    Dim rangeH: Set rangeH = dst.Range(dr.Offset(1, 0).Address + ":" + dr.Offset(wss.Count, 0).Address)
-    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.Count, 1).Address)
+    Dim rangeH: Set rangeH = dst.Range(dr.Offset(1, 0).Address + ":" + dr.Offset(wss.count, 0).Address)
+    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.count, 1).Address)
 
-    Dim rangeSort: Set rangeSort = dst.Range(dr.Offset(0, 0).Address + ":" + dr.Offset(wss.Count, 1).Address)
+    Dim rangeSort: Set rangeSort = dst.Range(dr.Offset(0, 0).Address + ":" + dr.Offset(wss.count, 1).Address)
 
     dst.Sort.SortFields.Add Key:=rangeH, _
         SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
@@ -113,21 +107,21 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
         .Apply
     End With
     
-    For i = 1 To wss.Count
+    For i = 1 To wss.count
         dr.Offset(0, 1 + i).Value = dr.Offset(i, 0).Value
         
-        dr.Offset(i + wss.Count, 0).Value = log(dr.Offset(i, 0).Value)
-        dr.Offset(i + wss.Count, 1).Value = log(dr.Offset(i, 1).Value)
+        dr.Offset(i + wss.count, 0).Value = log(dr.Offset(i, 0).Value)
+        dr.Offset(i + wss.count, 1).Value = log(dr.Offset(i, 1).Value)
         
-        For j = 1 To wss.Count
+        For j = 1 To wss.count
             If dr.Offset(i, 0).Value > dr.Offset(j, 0).Value Then
                 dr.Offset(i, j + 1).Value = windshear(dr.Offset(i, 1).Value, dr.Offset(j, 1).Value, dr.Offset(i, 0).Value, dr.Offset(j, 0).Value)
             End If
         Next j
     Next i
     
-    Dim range1 As Object: Set range1 = dst.Range(dr.Offset(1 + wss.Count, 1).Address + ":" + dr.Offset(2 * wss.Count, 1).Address)
-    Dim range2 As Object: Set range2 = dst.Range(dr.Offset(1 + wss.Count, 0).Address + ":" + dr.Offset(2 * wss.Count, 0).Address)
+    Dim range1 As Object: Set range1 = dst.Range(dr.Offset(1 + wss.count, 1).Address + ":" + dr.Offset(2 * wss.count, 1).Address)
+    Dim range2 As Object: Set range2 = dst.Range(dr.Offset(1 + wss.count, 0).Address + ":" + dr.Offset(2 * wss.count, 0).Address)
     Rsq = Application.WorksheetFunction.Rsq(range1, range2)
     Slope = Application.WorksheetFunction.Slope(range1, range2)
     Intercept = Application.WorksheetFunction.Intercept(range1, range2)
@@ -135,17 +129,13 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     Dim a: a = Exp(Intercept)
     Dim b: b = Slope
     
-    For i = 1 To wss.Count
-        dr.Offset(i, 2 + wss.Count).Value = a * dr.Offset(i, 0).Value ^ b
+    For i = 1 To wss.count
+        dr.Offset(i, 2 + wss.count).Value = a * dr.Offset(i, 0).Value ^ b
     Next i
     
-    Dim rangeT: Set rangeT = dst.Range(dr.Offset(1, 2 + wss.Count).Address + ":" + dr.Offset(wss.Count, 2 + wss.Count).Address)
-
-
-    dst.Range(rangeH.Address + "," + rangeA.Address).Select
+    Dim rangeT: Set rangeT = dst.Range(dr.Offset(1, 2 + wss.count).Address + ":" + dr.Offset(wss.count, 2 + wss.count).Address)
 
     Dim myChart As Object: Set myChart = dst.Shapes.AddChart.Chart
-
     With myChart
         .ChartType = xlXYScatterSmoothNoMarkers
         
@@ -160,7 +150,7 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
         End With
 
         .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0_ " '"#,##0.0_);[红色](#,##0.0)"
+        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0_"
         .Axes(xlValue, xlPrimary).AxisTitle.Text = "风速 (m/s)"
         .Axes(xlCategory).HasTitle = True
         With .Axes(xlCategory).AxisTitle
@@ -196,24 +186,22 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     Dim tbs As Integer: tbs = InStr(1, tb, "x", 1) + 1
     Dim tbo As Integer: tbo = Len(tb) - tbs + 1
 
-
     myChart.Shapes.AddTextbox(msoTextOrientationHorizontal, 417, 91.8, 103.8, _
         56.4).Select
-    Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = tb & Chr(13) & _
-                                                "R2 = " & Format(Rsq, "0.00")
-    With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(tbs, tbo).Font
-        .BaselineOffset = 0.3
-    End With
-    With Selection.ShapeRange(1).TextFrame2.TextRange.Characters(Len(tb) + 3, 1).Font
-        .BaselineOffset = 0.3
-    End With
-
+    Dim otb As Object: Set otb = myChart.Shapes(1)
+    otb.TextFrame.Characters.Text = tb & Chr(13) & _
+                                          "R2 = " & Format(Rsq, "0.00")
+    otb.TextFrame2.TextRange.Characters(tbs, tbo).Font. _
+            BaselineOffset = 0.3
+    otb.TextFrame2.TextRange.Characters(Len(tb) + 3, 1).Font. _
+            BaselineOffset = 0.3
+    
     myChart.Parent.Cut
     dst.Select
-    dr.Offset(1 + wss.Count, 0).Select
+    dr.Offset(1 + wss.count, 0).Select
     dst.Pictures.Paste.Select
     
-    dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.Count, wss.Count + 2).Address).NumberFormatLocal = "0.00"
+    dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.count, wss.count + 2).Address).NumberFormatLocal = "0.00"
 
 End Function
 
@@ -234,7 +222,7 @@ Sub 计算选定两列的风切变()
             Set d1r = Selection.Rows(1)
             Set d2r = Selection.Rows(2)
         Else
-            MsgBox "选定数据不符 " & Selection.Rows.Count & " " & Selection.Columns.Count
+            MsgBox "选定数据不符 " & Selection.Rows.count & " " & Selection.Columns.count
             Exit Sub
         End If
         
@@ -244,10 +232,10 @@ Sub 计算选定两列的风切变()
         Dim r1: Set r1 = st.Range(ar(0))
         Dim r2: Set r2 = st.Range(ar(1))
         
-        If ta1 = 1 And ta2 = 1 And r1.Rows.Count = r2.Rows.Count Then
-        ElseIf ta1 = 2 And ta2 = 2 And r1.Columns.Count = r2.Columns.Count Then
+        If ta1 = 1 And ta2 = 1 And r1.Rows.count = r2.Rows.count Then
+        ElseIf ta1 = 2 And ta2 = 2 And r1.Columns.count = r2.Columns.count Then
         Else
-            MsgBox "选定数据不符 " & Selection.Rows.Count & " " & Selection.Columns.Count
+            MsgBox "选定数据不符 " & Selection.Rows.count & " " & Selection.Columns.count
             Exit Sub
         End If
         
@@ -273,9 +261,9 @@ Function windshear(avg1 As Double, avg2 As Double, h1 As Double, h2 As Double) A
 End Function
 
 Function largethan(o As Object, i As Integer) As Integer
-    If o.Rows.Count > i And o.Columns.Count = i Then
+    If o.Rows.count > i And o.Columns.count = i Then
         largethan = 1
-    ElseIf o.Columns.Count > i And o.Rows.Count = i Then
+    ElseIf o.Columns.count > i And o.Rows.count = i Then
         largethan = 2
     Else
         largethan = 0

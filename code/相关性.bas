@@ -83,12 +83,12 @@ Sub 计算相关性()
 
                     Next
                     
-                    indexj = indexj + s2.SensorsR.Count
+                    indexj = indexj + s2.SensorsR.count
                 Next
 
             Next
 
-            indexi = indexi + s1.SensorsR.Count
+            indexi = indexi + s1.SensorsR.count
         Next
         
     Next

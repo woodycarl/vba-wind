@@ -40,7 +40,7 @@ Sub 生成1h()
             End If
             Info st.id + " no 1h data! gen from 10m data."
             
-            Sheets.Add After:=Sheets(Sheets.Count)
+            Sheets.Add After:=Sheets(Sheets.count)
             ActiveSheet.Name = "data" + st.id + "1h"
             
             genD1fD2 Sheets(st.Sheet10m), ActiveSheet
@@ -76,7 +76,7 @@ End Function
 
 Function addStation(s As Station)
 
-    If Stations.Count >= 1 Then
+    If Stations.count >= 1 Then
         If Stations.Exists(s.id) Then
             Info "站点已存在: " + CStr(s.id)
             Exit Function
@@ -91,27 +91,27 @@ End Function
 
 Function decDate(str As String) As String
     Set mymatches = re1.Execute(str)
-    If mymatches.Count >= 1 Then
+    If mymatches.count >= 1 Then
         Set mymatch = mymatches(0)
-        If mymatch.SubMatches.Count >= 6 Then
+        If mymatch.SubMatches.count >= 6 Then
             decDate = newDate(mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(2), mymatch.SubMatches(4), mymatch.SubMatches(5))
             Exit Function
         End If
     End If
     
     Set mymatches = re2.Execute(str)
-    If mymatches.Count >= 1 Then
+    If mymatches.count >= 1 Then
         Set mymatch = mymatches(0)
-        If mymatch.SubMatches.Count >= 6 Then
+        If mymatch.SubMatches.count >= 6 Then
             decDate = newDate(mymatch.SubMatches(2), mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(3), mymatch.SubMatches(4))
             Exit Function
         End If
     End If
     
     Set mymatches = re3.Execute(str)
-    If mymatches.Count >= 1 Then
+    If mymatches.count >= 1 Then
         Set mymatch = mymatches(0)
-        If mymatch.SubMatches.Count >= 3 Then
+        If mymatch.SubMatches.count >= 3 Then
             decDate = newDate(mymatch.SubMatches(0), mymatch.SubMatches(1), mymatch.SubMatches(2), 0, 0)
             Exit Function
         End If
@@ -130,7 +130,7 @@ Function adjustData(ds As Object, s As Object)
     ' 调整日期格式
     
     Dim i
-    For i = 2 To ds.UsedRange.Rows.Count
+    For i = 2 To ds.UsedRange.Rows.count
         ds.Cells(i, 1).Value = decDate(ds.Cells(i, 1).Value)
     Next i
     
@@ -139,8 +139,8 @@ Function adjustData(ds As Object, s As Object)
     ' 判断是10分钟还是60分钟数据
     
     Dim maxX, maxY
-    maxX = ds.UsedRange.Rows.Count
-    maxY = ds.UsedRange.Columns.Count
+    maxX = ds.UsedRange.Rows.count
+    maxY = ds.UsedRange.Columns.count
     
     Dim x As String, y As String
     x = ds.Cells(2, maxY + 1).Address
@@ -181,8 +181,8 @@ End Function
 
 Function genD1fD2(d2 As Object, d1 As Object)
     Dim maxX, maxY
-    maxY = d2.UsedRange.Columns.Count
-    maxX = d2.UsedRange.Rows.Count
+    maxY = d2.UsedRange.Columns.count
+    maxX = d2.UsedRange.Rows.count
 
     d2.Range(d2.Cells(1, 1), d2.Cells(1, maxY)).Copy
     d1.Paste
@@ -226,7 +226,7 @@ Function genD1fD2(d2 As Object, d1 As Object)
         
     Next i
     
-    d1.Range(Cells(2, 2), Cells(d1.UsedRange.Rows.Count, d1.UsedRange.Columns.Count)).NumberFormatLocal = "0.00_);[红色](0.00)"
+    d1.Range(Cells(2, 2), Cells(d1.UsedRange.Rows.count, d1.UsedRange.Columns.count)).NumberFormatLocal = "0.00_);[红色](0.00)"
 
 End Function
 
@@ -239,7 +239,7 @@ Function adjustRTimes(sn As String, ss As Object, t As Double)
     If sn <> "" And sheetExist(sn) Then
 
         Set ds = Sheets(sn)
-        For i = 2 To ds.Rows.Count
+        For i = 2 To ds.Rows.count
             If ss.avg > 0 Then
                 ds.Cells(i, ss.avg).Value = ds.Cells(i, ss.avg).Value * t
             End If
@@ -260,7 +260,7 @@ Function adjustRF(sn As String, ss As Object)
     
     If sn <> "" And sheetExist(sn) Then
         Set ds = Sheets(sn)
-        For i = 2 To ds.Rows.Count
+        For i = 2 To ds.Rows.count
             If ss.avg > 0 Then
                 ds.Cells(i, ss.avg).Value = (ds.Cells(i, ss.avg).Value - 32) / 1.8
             End If

@@ -14,14 +14,14 @@ Function decSDR(rst As Object)
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
     Else
-        Sheets.Add After:=Sheets(Sheets.Count)
+        Sheets.Add After:=Sheets(Sheets.count)
         ActiveSheet.Name = sn
         s.newStation ActiveSheet
         
         decInfoSDR rst, s
     End If
     
-    rst.Copy After:=Sheets(Sheets.Count)
+    rst.Copy After:=Sheets(Sheets.count)
     ActiveSheet.Name = pred + s.id
     Rows("1:" & (s.DataStart - 1)).Delete Shift:=xlUp
     
@@ -37,7 +37,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
     reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
 
     Dim i As Single
-    For i = 1 To rs.UsedRange.Rows.Count
+    For i = 1 To rs.UsedRange.Rows.count
         If InStr(1, rs.Cells(i, 1).Value, "Logger", 1) > 0 Then
             With s.Logger
                 .Model = rs.Cells(i + 1, 2).Value
@@ -89,9 +89,9 @@ Private Function decInfoSDR(rs As Object, s As Object)
             End Select
             
             Set mymatches = reISH.Execute(rs.Cells(i + 5, 2).Value)
-            If mymatches.Count >= 1 Then
+            If mymatches.count >= 1 Then
                 Set mymatch = mymatches(0)
-                If mymatch.SubMatches.Count >= 2 Then
+                If mymatch.SubMatches.count >= 2 Then
                     ss.height = mymatch.SubMatches(0)
         
                     If mymatch.SubMatches(1) = "ft" Then

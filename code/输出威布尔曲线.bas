@@ -17,7 +17,7 @@ Sub 绘制威布尔曲线()
         
         ' 增加数据透视表
         oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.DataRange, Version:=xlPivotTableVersion14). _
+            s.dataRange, Version:=xlPivotTableVersion14). _
             CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
             DefaultVersion:=xlPivotTableVersion14
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
@@ -29,7 +29,7 @@ Sub 绘制威布尔曲线()
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
-        For j = 0 To wvs.Count - 1
+        For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
             
             Set pc = dst.Range(s.CurRePo)
@@ -44,7 +44,7 @@ End Sub
 
 
 Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ss As Object)
-    Dim maxX1 As Integer: maxX1 = rst.UsedRange.Rows.Count
+    Dim maxX1 As Integer: maxX1 = rst.UsedRange.Rows.count
     Dim range1 As Object: Set range1 = rst.Range(rst.Cells(2, ss.avg).Address + ":" + rst.Cells(maxX1, ss.avg).Address)
 
     Dim sr As Double
@@ -80,8 +80,8 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
     End With
     
 
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
     oTemp.Range("A2:" + oTemp.Cells(maxX, maxY).Address).Copy
     po.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
@@ -195,8 +195,8 @@ Private Function weibull(k As Double, c As Double, v As Double) As Double
 End Function
 
 Function wpRange(rst As Object, ch As String) As String
-    Dim maxX As Integer: maxX = rst.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = rst.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = rst.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = rst.UsedRange.Columns.count
     
     For i = 1 To maxY
         If rst.Cells(1, i).Value = "CH" + ch + "WP" Then

@@ -17,7 +17,7 @@ Sub 绘制风玫瑰图()
         
         ' 增加数据透视表
         oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.DataRange, Version:=xlPivotTableVersion14). _
+            s.dataRange, Version:=xlPivotTableVersion14). _
             CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
             DefaultVersion:=xlPivotTableVersion14
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
@@ -33,7 +33,7 @@ Sub 绘制风玫瑰图()
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim av: av = wvs.Items
         
-        For i = 0 To wvs.Count - 1
+        For i = 0 To wvs.count - 1
             Dim ssv As Object: Set ssv = av(i)
             Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
             
@@ -83,8 +83,8 @@ Private Function showWindrose(rst As Object, dst As Object, s As Object, po As O
         .RowGrand = False
     End With
     
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.Count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.Count
+    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
     
     oTemp.Range("A2:" + oTemp.Cells(maxX, maxY).Address).Copy
     
