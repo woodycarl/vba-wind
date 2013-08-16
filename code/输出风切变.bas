@@ -150,7 +150,7 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
         End With
 
         .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0_"
+        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0"
         .Axes(xlValue, xlPrimary).AxisTitle.Text = "风速 (m/s)"
         .Axes(xlCategory).HasTitle = True
         With .Axes(xlCategory).AxisTitle

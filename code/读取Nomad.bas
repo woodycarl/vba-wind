@@ -105,9 +105,9 @@ Function getSfSN(s As Object, ns As Collection)
     For i = 1 To ns.count
         Set n = ns(i)
 
-        k = existSN(s.SensorsR, n)
+        k = existSN(s.sensorsR, n)
         If k = "" Then
-            k = CStr(s.SensorsR.count + 1)
+            k = CStr(s.sensorsR.count + 1)
             
             Set ss = s.newSensor
             With ss
@@ -117,7 +117,7 @@ Function getSfSN(s As Object, ns As Collection)
                 .channel = k
             End With
         Else
-            Set ss = s.SensorsR(k)
+            Set ss = s.sensorsR(k)
         End If
         
         Select Case n.cat
@@ -178,8 +178,8 @@ Function decDataNomad(rs As Object, s As Object, ds As Object)
     Dim ss As Object
     Dim k
 
-    For Each k In s.SensorsR
-        Set ss = s.SensorsR(k)
+    For Each k In s.sensorsR
+        Set ss = s.sensorsR(k)
         ds.Cells(1, (i - 1) * 4 + 2).Value = "CH" + CStr(i) + "Avg"
         ds.Cells(1, (i - 1) * 4 + 3).Value = "CH" + CStr(i) + "SD"
         ds.Cells(1, (i - 1) * 4 + 4).Value = "CH" + CStr(i) + "Max"

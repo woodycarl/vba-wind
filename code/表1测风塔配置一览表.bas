@@ -46,8 +46,8 @@ Function showInfo(s As Station, ds As Object)
     Dim ss As Sensor
     Dim i As Integer
     i = 8
-    For Each Key In s.SensorsR.Keys
-        Set ss = s.SensorsR(Key)
+    For Each Key In s.sensorsR.Keys
+        Set ss = s.sensorsR(Key)
         
         If ss.height > maxH Then
             maxH = ss.height

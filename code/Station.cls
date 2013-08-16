@@ -200,19 +200,19 @@ Public Property Get Site() As Object
 End Property
 
 ' sensorsR
-Public Property Get SensorsR() As Scripting.Dictionary     ' Sensor
+Public Property Get sensorsR() As Scripting.Dictionary     ' Sensor
     Dim i As Integer
     Dim s As Object
     Dim a As Object
 
-    Set SensorsR = CreateObject("Scripting.Dictionary")
+    Set sensorsR = CreateObject("Scripting.Dictionary")
 
     For i = 1 To oConfig.MaxSensorNum
         Set a = senr.Offset(i + 1, 0)
         If InStr(1, a.Value, "CH", 1) > 0 Then
             Set s = New sSensor
             s.init a
-            SensorsR.Add s.channel, s
+            sensorsR.Add s.channel, s
         End If
     Next
     

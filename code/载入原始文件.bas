@@ -12,8 +12,7 @@ Sub 选择文件()
     Dim fd  As Object
     Dim fp As String
     Dim sn As String ' sheet name
-    Dim i As Integer ' raw index
-    i = 1
+
     
     Set fd = Application.FileDialog(msoFileDialogFilePicker)
     With fd
@@ -31,11 +30,9 @@ Sub 选择文件()
             fp = CStr(f)
             
             delExistRaw fp      ' 删除已导入的相同文件
-            sn = newRawName(i)  ' 生成新raw sheet名
+            sn = newRawName(1)  ' 生成新raw sheet名, 从1开始命名
             
             loadData fp, sn
-            
-            i = i + 1
         Next
     End With
     
