@@ -116,16 +116,16 @@ Function addLinestChart(r As Object, st As Object) As Object
         .DisplayRSquared = True
         
         With .DataLabel
-            .Left = 100
-            .Top = 12
+            .left = 100
+            .top = 12
         End With
     End With
     
     With addLinestChart.Parent
          .height = 200 ' resize
-         .Width = 250  ' resize
-         .Top = 0    ' reposition
-         .Left = 0   ' reposition
+         .width = 250  ' resize
+         .top = 0    ' reposition
+         .left = 0   ' reposition
     End With
     
     ' st.Shapes(ActiveChart.Parent.Name).Line.Visible = msoFalse ' = =

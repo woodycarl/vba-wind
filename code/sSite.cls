@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 
 Private s   As Object
 Private sde As Object
-Private pc  As Object
+Private Pc  As Object
 Private pd  As Object
 Private sl  As Object
 Private se  As Object
@@ -22,7 +22,7 @@ Public Function init(a As Object)
 
     Set s = a.Offset(1, 1)      ' "B9"
     Set sde = a.Offset(2, 1)    ' "B10"
-    Set pc = a.Offset(3, 1)
+    Set Pc = a.Offset(3, 1)
     Set pd = a.Offset(4, 1)
     Set sl = a.Offset(5, 1)
     Set se = a.Offset(6, 1)
@@ -51,10 +51,10 @@ End Property
 
 ' ProjectCode
 Public Property Get ProjectCode() As String
-    ProjectCode = pc.Value
+    ProjectCode = Pc.Value
 End Property
 Public Property Let ProjectCode(ByVal v As String)
-    pc.Value = v
+    Pc.Value = v
 End Property
 
 ' ProjectDesc

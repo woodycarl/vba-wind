@@ -23,9 +23,9 @@ Sub 绘制风玫瑰图()
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
 
         ' 代表年的全年风向、风能频率分布玫瑰图
-        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-        pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
-        s.CurRePo = pc.Offset(1, 0).Address
+        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+        Pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
+        s.CurRePo = Pc.Offset(1, 0).Address
         
         Dim wds As Object: Set wds = s.Sensors("wd")
         Dim ad: ad = wds.Items
@@ -37,8 +37,8 @@ Sub 绘制风玫瑰图()
             Dim ssv As Object: Set ssv = av(i)
             Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
             
-            Set pc = dst.Range(s.CurRePo)
-            showWindrose rst, dst, s, pc, pt, ssv, ssd
+            Set Pc = dst.Range(s.CurRePo)
+            showWindrose rst, dst, s, Pc, pt, ssv, ssd
         Next
 
         ' 清除数据透视表，删除增加的数据列
@@ -120,9 +120,9 @@ Private Function showWindrose(rst As Object, dst As Object, s As Object, po As O
     End With
     With myChart.Parent
          .height = 300  ' resize
-         .Width = 300   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
+         .width = 300   ' resize
+         .top = 0       ' reposition
+         .left = 0      ' reposition
     End With
 
     myChart.Parent.Cut

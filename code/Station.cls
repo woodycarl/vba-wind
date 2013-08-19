@@ -131,6 +131,7 @@ Public Function newStation(ByVal s As Object)
     crp.Value = "A1"
 End Function
 
+
 ' Result
 Public Property Get Result() As String
     Result = dst.Value
@@ -139,12 +140,20 @@ Public Property Let Result(ByVal v As String)
     dst.Value = v
 End Property
 
+
 ' CurRePo
 Public Property Get CurRePo() As String
     CurRePo = crp.Value
 End Property
 Public Property Let CurRePo(ByVal v As String)
     crp.Value = v
+End Property
+' Pc
+Public Property Get Pc() As Object
+    Set Pc = Sheets(Result).Range(CurRePo)
+End Property
+Public Property Let Pc(ByVal v As Object)
+    CurRePo = v.Address
 End Property
 
 ' AddedData
@@ -240,10 +249,10 @@ End Function
 
 
 'DataStart
-Public Property Get DataStart() As Integer
-    DataStart = dats.Value
+Public Property Get datastart() As Integer
+    datastart = dats.Value
 End Property
-Public Property Let DataStart(ByVal v As Integer)
+Public Property Let datastart(ByVal v As Integer)
     dats.Value = v
 End Property
 

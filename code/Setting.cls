@@ -14,6 +14,7 @@ Private Const ra_y As Integer = 6
 Private calI    As Object
 Private maxs    As Object
 Private stan    As Object
+Private usepic  As Object
 
 Private rL      As Object
 Private calH    As Object
@@ -28,6 +29,7 @@ Public Function init(os As Object)
     Set calI = os.Range("B2")
     Set maxs = os.Range("B3")
     Set stan = os.Range("B4")
+    Set usepic = os.Range("B5")
     
     Set rL = os.Range("F2")
     Set calH = os.Range("F3")
@@ -75,6 +77,14 @@ Public Property Let StationNum(v As Integer)
     stan.Value = v
 End Property
 
+' ConvertToPic
+' 生成图片
+Public Property Get ConvertToPic() As Boolean
+    ConvertToPic = usepic.Value
+End Property
+Public Property Let ConvertToPic(v As Boolean)
+    usepic.Value = v
+End Property
 
 '
 ' RLostMethod

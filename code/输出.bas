@@ -1,20 +1,60 @@
 Attribute VB_Name = "输出"
 
 Sub 生成报表()
+    calResult "所有"
+End Sub
+
+Sub 显示平均风速风能()
+    calResult "平均风速风能"
+End Sub
+Sub 计算2()
+    calResult "风速风能频率"
+End Sub
+Sub 计算3()
+    calResult "风玫瑰图"
+End Sub
+Sub 计算4()
+    calResult "威布尔曲线"
+End Sub
+Sub 计算5()
+    calResult "风切变指数"
+End Sub
+Sub 计算6()
+    calResult "湍流强度"
+End Sub
+Function calResult(str As String)
     系统初始化
     
     For Each k In Stations
         Dim s As Object: Set s = Stations(k)
         
-        计算平均风速风能
-        计算风速风能频率
-        绘制风玫瑰图
-        绘制威布尔曲线
-        计算风切变指数
-        计算湍流强度
+        If s.CurRePo = "A1" Then
+            initCalResult s
+        End If
+        
+        Dim rst60 As Object: Set rst60 = Sheets(s.Sheet1h)
+        Dim dst As Object: Set dst = Sheets(s.Result)
+
+
+        Select Case str
+            Case "平均风速风能"
+                计算平均风速风能 s, rst60, dst
+            Case "风速风能频率"
+            
+            Case "风玫瑰图"
+            
+            Case "威布尔曲线"
+            
+            Case "风切变指数"
+            
+            Case "湍流强度"
+            
+            Case "所有"
+            
+        End Select
+        
     Next
-    
-End Sub
+End Function
 
 Function initCalResult(s As Object)
     calAirDensity s ' 计算空气密度
@@ -136,10 +176,10 @@ Function initCalResult(s As Object)
     s.dataRange = rst.Name + "!A1:" + cellL.Address
     
     ' 首行
-    Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-    pc.Value = "数据日期: " + Format(s.StartTime, "yyyy年mm月dd日") + _
+    Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+    Pc.Value = "数据日期: " + Format(s.StartTime, "yyyy年mm月dd日") + _
         "～" + Format(s.EndTime, "yyyy年mm月dd日")
-    s.CurRePo = pc.Offset(2, 0).Address
+    s.CurRePo = Pc.Offset(2, 0).Address
     
 End Function
 
@@ -180,21 +220,17 @@ Private Function calAirDensity(s As Object)
     Dim p, t
     If ts.count > 0 Then
         Dim ta: ta = ts.Items
-        Dim sst As Object: Set sst = ta(0)
-        Dim rangeT As Object: Set rangeT = st.Range(arrCol(sst.channel))
-        t = Application.WorksheetFunction.Average(rangeT)
+        t = Application.WorksheetFunction.Average(st.Columns(ta(0).avg))
         
         If ps.count > 0 Then
             ' 当同时有气温和气压数据时
             Dim pa: pa = ps.Items
-            Dim ssp As Object: Set ssp = pa(0)
-            Dim rangep As Object: Set rangep = st.Range(arrCol(ssp.channel))
-            p = Application.WorksheetFunction.Average(rangep)
+            p = Application.WorksheetFunction.Average(st.Columns(pa(0).avg))
             
             s.AirDensity = p * 1000 / (287 * (t + 273))
         Else
             ' 当只有气温数据时
-            s.AirDensity = (353.05 / t) * Exp((-0.034) * (height / (t + 273)))
+            s.AirDensity = (353.05 / (t + 273)) * Exp((-0.034) * (height / (t + 273)))
         End If
     End If
 End Function

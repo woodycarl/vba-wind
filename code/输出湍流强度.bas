@@ -16,14 +16,19 @@ Sub 计算湍流强度()
         Dim wts As New Collection
         
         ' 代表年的不同高度湍流强度
-        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-        pc.Value = "代表年的不同高度湍流强度"
-        s.CurRePo = pc.Offset(1, 0).Address
+        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+        Pc.Value = "代表年的不同高度湍流强度"
+        s.CurRePo = Pc.Offset(1, 0).Address
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
         For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
+            
+            If ss.height = 0 Then
+                Err s.id + "计算风切变指数: CH" + ss.channel + " 高度为空"
+                GoTo cf1
+            End If
             
             Dim v As WT: Set v = New WT
             With v
@@ -43,14 +48,17 @@ Sub 计算湍流强度()
             End If
 
             wts.Add v
-            
+cf1:
         Next j
         
-        Set pc = dst.Range(s.CurRePo)
-        
-        calTurbs dst, pc, wts
-        
-        s.CurRePo = pc.Offset(wvs.count + 17, 0).Address
+        If wts.count < 2 Then
+            Err s.id + "计算湍流强度: 可用参数不足!"
+            GoTo cf2
+        End If
+        Set Pc = dst.Range(s.CurRePo)
+        calTurbs dst, Pc, wts
+        s.CurRePo = Pc.Offset(wvs.count + 17, 0).Address
+cf2:
     Next
     
 End Sub
@@ -208,9 +216,9 @@ Function calTurbs(dst As Object, dr As Object, wts As Collection)
     End With
     With myChart.Parent
          .height = 200  ' resize
-         .Width = 550   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
+         .width = 550   ' resize
+         .top = 0       ' reposition
+         .left = 0      ' reposition
     End With
 
     myChart.Parent.Cut
@@ -308,7 +316,7 @@ Function calTurb(v As WT, interval As Double, limit As Double) As Scripting.Dict
     calTurb.Add "0", Application.WorksheetFunction.Average(t.Range("C:C"))
 
     Dim ra As Object: Set ra = t.Range("B:B")
-    Dim maxA As Integer: maxA = Application.WorksheetFunction.Max(ra) 'Application.WorksheetFunction.Ceiling(, 1)
+    Dim maxA As Integer: maxA = Application.WorksheetFunction.max(ra) 'Application.WorksheetFunction.Ceiling(, 1)
     
     Dim i As Double
     For i = 3 To maxA + interval Step interval 'interval

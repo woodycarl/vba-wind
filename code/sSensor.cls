@@ -161,10 +161,10 @@ Public Property Let Min(ByVal v As Integer)
 End Property
 
 ' Max
-Public Property Get Max() As Integer
-    Max = ma.Value
+Public Property Get max() As Integer
+    max = ma.Value
 End Property
-Public Property Let Max(ByVal v As Integer)
+Public Property Let max(ByVal v As Integer)
     ma.Value = v
 End Property
 

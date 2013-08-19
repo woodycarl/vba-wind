@@ -1,5 +1,5 @@
 Attribute VB_Name = "记录"
-Public LoggerIndex As Integer
+Public LoggerIndex As Double
 Private message As Object
 
 Function 记录初始化()
@@ -11,13 +11,12 @@ Function 记录初始化()
     LoggerIndex = 2
 End Function
 
-Private Function Logger(err As String, str As String)
-
+Private Function Logger(Err As String, str As String)
     Dim s As String
     s = CStr(LoggerIndex)
     
     oRecord.Range("A" + s).Value = Format(Now(), "mm/dd hh:MM:ss ")
-    oRecord.Range("B" + s).Value = err
+    oRecord.Range("B" + s).Value = Err
     oRecord.Range("C" + s).Value = str
     
     
@@ -26,7 +25,7 @@ Private Function Logger(err As String, str As String)
     Dim FontColor As String
     Dim InteriorColor As String
     
-    Select Case err
+    Select Case Err
         Case "「Error」"
             FontColor = "-16383844"
             InteriorColor = "13551615"
@@ -51,7 +50,7 @@ Private Function Logger(err As String, str As String)
     LoggerIndex = LoggerIndex + 1
 End Function
 
-Function Error(str As String)
+Function Err(str As String)
     Logger "「Error」", str
 End Function
 

@@ -6,7 +6,7 @@ Public re3      As Object
 
 Sub 读取数据()
     系统初始化
-    initRead
+    init
     
     Dim st As Object
     
@@ -15,51 +15,39 @@ Sub 读取数据()
             decRaw st
         End If
     Next
-    
-    Dim k, s As Object
+
     For Each k In Stations
-        Set s = Stations(k)
+        Dim s As Object: Set s = Stations(k)
         
         sensorClassfy s
     Next
 End Sub
-
-Sub 生成1h()
-    系统初始化
+Private Function init()
+    ' 设定正则
     
-    Dim k, st As Object
-    For Each k In Stations
-        Set s = Stations(k)
-        
-        If s.Sheet1h = "" Then
-            If s.Sheet10m = "" Then
-                MsgBox s.id + ": no data!"
-                Exit Sub
-            End If
-            Info s.id + " no 1h data! gen from 10m data."
-            
-
-            Dim d1h As Object: Set d1h = newSheet("data" + s.id + "1h")
-            
-            genD1fD2 Sheets(s.Sheet10m), d1h
-            
-            s.Sheet1h = "data" + s.id + "1h"
-        End If
-    Next
-End Sub
-
-' 设定正则
-Function initRead()
-
     Set re1 = CreateObject("vbscript.regexp")
     re1.Pattern = "(\d{4})[\/|-](\d{1,2})[\/|-](\d{1,2})(\s\w+|)\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
+    ' yyyy/m/d (weekday) h:mm
+    ' 2011/11/18 Friday 07:10:00
+    ' 2011/11/18 07:10:00
 
     Set re2 = CreateObject("vbscript.regexp")
     re2.Pattern = "(\d{1,2})[\/|-](\d{1,2})[\/|-](\d{4})\s(\d{1,2}):(\d{1,2})(:\d{1,2}|)"
-    
+    ' m/d/yyyy h:mm
+    ' 1/2/2010 0:00
+
     Set re3 = CreateObject("vbscript.regexp")
     re3.Pattern = "^""?(\d{4})[\-|\/](\d{1,2})[\-|\/](\d{1,2})""?$"
+    ' yyyy/m/d "yyyy/m/d"
+    ' 2012/1/1
+    ' "2012/1/1"
+    
+    ' yyyy/d/m h:mm 0004-1-10m.txt
+    ' 2012/1/1 23:50
+    ' 2012/2/1 0:00
 End Function
+
+
 
 Function decRaw(st As Object)
     Dim v: v = st.Range("A1").Value
@@ -72,7 +60,6 @@ Function decRaw(st As Object)
 End Function
 
 Function addStation(s As Station)
-
     If Stations.count >= 1 Then
         If Stations.Exists(s.id) Then
             Info "站点已存在: " + CStr(s.id)
@@ -82,9 +69,7 @@ Function addStation(s As Station)
 
     Info "新增站点: " + s.id
     Stations.Add s.id, s
-        
 End Function
-
 
 Function decDate(str As String) As String
     Set mymatches = re1.Execute(str)
@@ -114,8 +99,8 @@ Function decDate(str As String) As String
         End If
     End If
     
-    MsgBox "time format err: " + str
-    'Error "时间格式错误"
+    decDate = str
+    Err "时间格式错误: " + str
     
 End Function
 
@@ -125,31 +110,27 @@ End Function
 
 Function adjustData(ds As Object, s As Object)
     ' 调整日期格式
-    
-    Dim i
+
     For i = 2 To ds.UsedRange.Rows.count
         ds.Cells(i, 1).Value = decDate(ds.Cells(i, 1).Value)
     Next i
     
-    ds.Columns("A:A").NumberFormatLocal = "yyyy/m/d h:mm"
+    ds.Columns(1).NumberFormatLocal = "yyyy/m/d h:mm"
     
     ' 判断是10分钟还是60分钟数据
     
-    Dim maxX, maxY
-    maxX = ds.UsedRange.Rows.count
-    maxY = ds.UsedRange.Columns.count
+    Dim maxX: maxX = ds.UsedRange.Rows.count
+    Dim maxY: maxY = ds.UsedRange.Columns.count
     
-    Dim x As String, y As String
-    x = ds.Cells(2, maxY + 1).Address
-    y = ds.Cells(maxX, maxY + 1).Address
+    Dim t As Object: Set t = newSheet("tadjustdata")
+    t.Cells(2, 1).Formula = "=MINUTE('" + ds.Name + "'!A2)"
+    t.Cells(2, 1).AutoFill Destination:=t.Range(t.Cells(2, 1), t.Cells(maxX, 1))
     
-    ds.Cells(2, maxY + 1).Formula = "=MINUTE(A2)"
-    ds.Cells(2, maxY + 1).AutoFill Destination:=ds.Range(x + ":" + y)
+    Dim avg As Double: avg = Application.WorksheetFunction.Average(t.Columns(1))
+    deleteSheet t
 
-    ds.Cells(1, maxY + 1).Formula = "=AVERAGE(" + CStr(x) + ":" + CStr(y) + ")"
-    
     Dim n As String
-    If ds.Cells(1, maxY + 1).Value > 1 Then
+    If avg > 1 Then
         n = "data" + s.id + "10m"
         s.Sheet10m = n
     Else
@@ -157,112 +138,53 @@ Function adjustData(ds As Object, s As Object)
         s.Sheet1h = n
     End If
     If sheetExist(n) Then
-        Sheets(n).Delete
+        deleteSheet Sheets(n)
     End If
     ds.Name = n
-    
-    ds.Range(ds.Cells(1, maxY + 1).Address + ":" + ds.Cells(maxX, maxY + 1).Address).Clear
-    
+    ds.Range(ds.Cells(2, 2), ds.Cells(ds.UsedRange.Rows.count, ds.UsedRange.Columns.count)).NumberFormatLocal = "0.0"
+
     ' 起始结束时间
-    
-    ds.Cells(2, maxY + 1).Formula = "=min('" + ds.Name + "'!A:A)"
-    ds.Cells(2, maxY + 1).NumberFormatLocal = "yyyy/m/d h:mm"
-    s.StartTime = ds.Cells(2, maxY + 1).Value
-    ds.Cells(2, maxY + 1).Formula = "=max('" + ds.Name + "'!A:A)"
-    ds.Cells(2, maxY + 1).NumberFormatLocal = "yyyy/m/d h:mm"
-    s.EndTime = ds.Cells(2, maxY + 1).Value
-    
-    ds.Cells(2, maxY + 1).Clear
+    s.StartTime = Format(Application.WorksheetFunction.Min(ds.Columns(1)), "yyyy/m/d h:mm")
+    s.EndTime = Format(Application.WorksheetFunction.max(ds.Columns(1)), "yyyy/m/d h:mm")
+
 End Function
 
-' 50s
-Function genD1fD22(d2 As Object, d1 As Object)
-    Dim t As Object: Set t = newSheet("tgend1fd22")
-    rangeCopy d2.UsedRange, t.Cells(1, 1)
+Sub 生成1h()
+    系统初始化
     
-    t.Columns(1).Clear
-    Dim ca As String: ca = d2.Name + "!" + Replace(d2.Cells(2, 1).Address, "$", "")
-    t.Cells(2, 1).Formula = "=YEAR(" + ca + ")&""/""" & "&Month(" + ca + ")&""/""" & "&DAY(" + ca + ")&"" """ & "&HOUR(" + ca + ")&"":00"""
-    
-    t.Cells(2, 1).AutoFill Destination:=t.Range(t.Cells(2, 1).Address + ":" + t.Cells(t.UsedRange.Rows.count, 1).Address)
-    t.Cells(1, 1).Value = "Date & Time Stamp"
-    
-    Dim tt As Object: Set tt = newSheet("tgend1fd22tt")
-    Dim dataRange As String: dataRange = t.Name + "!" + t.UsedRange.Address
-    Dim pt As Object: Set pt = newPT(tt, dataRange, "pt")
-    
-    With pt.PivotFields("Date & Time Stamp")
-        .Orientation = xlRowField
-        .Position = 1
-    End With
-    
-    For i = 2 To d2.UsedRange.Columns.count
-        Dim colN As String: colN = d2.Cells(1, i).Value
-        pt.AddDataField pt.PivotFields(colN), colN + "o", xlAverage
-    Next i
+    Dim k, st As Object
+    For Each k In Stations
+        Set s = Stations(k)
+        
+        If s.Sheet1h = "" Then
+            If s.Sheet10m = "" Then
+                MsgBox s.id + ": no 10m data!"
+                Exit Sub
+            End If
+            Info s.id + " no 1h data! gen from 10m data."
+            
+            Dim d1h As Object: Set d1h = newSheet("data" + s.id + "1h")
+            genD1fD2 Sheets(s.Sheet10m), d1h
+            s.Sheet1h = "data" + s.id + "1h"
+        End If
+    Next
+End Sub
+Private Function genD1fD2(d2 As Object, d1 As Object)
+    Dim maxX: maxX = d2.UsedRange.Rows.count
+    Dim maxY: maxY = d2.UsedRange.Columns.count
 
-    With pt.DataPivotField
-        .Orientation = xlColumnField
-        .Position = 1
-    End With
-    
-    With pt
-        .ColumnGrand = False
-        .RowGrand = False
-    End With
-    
-    rangeCopy tt.UsedRange, d1.Cells(1, 1)
-    
     rangeCopy d2.Rows(1), d1.Cells(1, 1)
     
-
-    With d1.Range(d1.Cells(2, 2), d1.Cells(d1.UsedRange.Rows.count, d1.UsedRange.Columns.count))
-        .NumberFormatLocal = "0.0"
-    End With
-    
-    d1.Sort.SortFields.Add Key:=d1.Range(d1.Cells(2, 1), d1.Cells(d1.UsedRange.Rows.count, 1)), _
-        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
-        xlSortTextAsNumbers
-
-    With d1.Sort
-        .SetRange d1.Range(d1.Cells(1, 1), d1.Cells(d1.UsedRange.Rows.count, d1.UsedRange.Columns.count))
-        .Header = xlYes
-        .MatchCase = False
-        .Orientation = xlTopToBottom
-        .SortMethod = xlPinYin
-        .Apply
-    End With
-
-    Application.DisplayAlerts = False
-    t.Delete
-    tt.Delete
-    Application.DisplayAlerts = True
-    
-End Function
-
-' 30s
-Function genD1fD2(d2 As Object, d1 As Object)
-    Dim maxX, maxY
-    maxY = d2.UsedRange.Columns.count
-    maxX = d2.UsedRange.Rows.count
-
-    d2.Range(d2.Cells(1, 1), d2.Cells(1, maxY)).Copy
-    d1.Paste
-    
     Dim d2s, d2e, d1i, val
-    Dim ft As String: ft = "yyyy/mm/dd hh:00"
-    
-    Dim i, j
-    
     For i = 2 To maxX
         If i = 2 Then
             d2s = 2
             d2e = 2
             d1i = 2
-            val = Format(d2.Cells(i, 1).Value, ft)
+            val = formatYMDH(d2.Cells(i, 1).Value)
         End If
     
-        If Format(d2.Cells(i, 1).Value, ft) = val Then
+        If formatYMDH(d2.Cells(i, 1).Value) = val Then
             d2e = d2e + 1
         Else
             d1.Cells(d1i, 1).Value = val
@@ -276,57 +198,17 @@ Function genD1fD2(d2 As Object, d1 As Object)
             d2s = i
             d2e = i
             d1i = d1i + 1
-            val = Format(d2.Cells(i, 1).Value, ft)
+            val = formatYMDH(d2.Cells(i, 1).Value)
         End If
         
     Next i
     
     d1.Range(d1.Cells(2, 2), d1.Cells(d1.UsedRange.Rows.count, d1.UsedRange.Columns.count)).NumberFormatLocal = "0.0"
 End Function
-
-
-Function adjustRTimes(sn As String, ss As Object, t As Double)
-    Dim i, ds As Object
-    
-    If sn <> "" And sheetExist(sn) Then
-
-        Set ds = Sheets(sn)
-        For i = 2 To ds.Rows.count
-            If ss.avg > 0 Then
-                ds.Cells(i, ss.avg).Value = ds.Cells(i, ss.avg).Value * t
-            End If
-
-            If ss.Max > 0 Then
-                ds.Cells(i, ss.Max).Value = ds.Cells(i, ss.Max).Value * t
-            End If
-            
-            If ss.Min > 0 Then
-                ds.Cells(i, ss.Min).Value = ds.Cells(i, ss.Min).Value * t
-            End If
-        Next i
-    End If
+Private Function formatYMDH(v As Double) As String
+    formatYMDH = Format(v, "yyyy/mm/dd hh:00")
 End Function
 
-Function adjustRF(sn As String, ss As Object)
-    Dim i, ds As Object
-    
-    If sn <> "" And sheetExist(sn) Then
-        Set ds = Sheets(sn)
-        For i = 2 To ds.Rows.count
-            If ss.avg > 0 Then
-                ds.Cells(i, ss.avg).Value = (ds.Cells(i, ss.avg).Value - 32) / 1.8
-            End If
-            
-            If ss.Max > 0 Then
-                ds.Cells(i, ss.Max).Value = (ds.Cells(i, ss.Max).Value - 32) / 1.8
-            End If
-            
-            If ss.Min > 0 Then
-                ds.Cells(i, ss.Min).Value = (ds.Cells(i, ss.Min).Value - 32) / 1.8
-            End If
-        Next i
-    End If
-End Function
 
 
 Function sensorClassfy(s As Object)
@@ -370,4 +252,37 @@ Function sensorClassfy(s As Object)
         End Select
     Next
 End Function
+Private Function adjustRTimes(sn As String, ss As Object, t As Double)
+    If sn <> "" And sheetExist(sn) Then
+        Dim r As Object: Set r = getAdjustRange(sn, ss)
+        
+        rangeFV r, t, xlMultiply
+        
+        r.NumberFormatLocal = "0.0"
+    End If
+End Function
+Private Function adjustRF(sn As String, ss As Object)
+    If sn <> "" And sheetExist(sn) Then
+        Dim r As Object: Set r = getAdjustRange(sn, ss)
 
+        rangeFV r, 32, xlSubtract
+        rangeFV r, 1.8, xlDivide
+        
+        r.NumberFormatLocal = "0.0"
+    End If
+End Function
+Private Function getAdjustRange(sn As String, ss As Object) As Object
+    Dim st As Object: Set st = Sheets(sn)
+    Dim maxX As Integer: maxX = st.UsedRange.Rows.count
+    Dim r As Object: Set r = st.Range(st.Cells(2, ss.avg), st.Cells(maxX, ss.avg))
+    
+    If ss.max > 0 Then
+        Set r = Application.Union(r, st.Range(st.Cells(2, ss.max), st.Cells(maxX, ss.max)))
+    End If
+    
+    If ss.Min > 0 Then
+        Set r = Application.Union(r, st.Range(st.Cells(2, ss.Min), st.Cells(maxX, ss.Min)))
+    End If
+    
+    Set getAdjustRange = r
+End Function

@@ -1,14 +1,10 @@
 Attribute VB_Name = "读取Nomad"
 ' Nomad格式数据读取
 
-Private Const pos As String = "A3" ' site.site单元格
-Private Const pres As String = "site" ' site表前缀
-Private Const pred As String = "data" ' data表前缀
-
 Function decNomad(rs As Object)
     Dim s As Station: Set s = New Station
     
-    Dim sn As String: sn = pres & Replace(rs.Range(pos).Value, "Site Name: ", "")
+    Dim sn As String: sn = "site" & Replace(rs.Range("A3").Value, "Site Name: ", "")
     
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
@@ -21,7 +17,7 @@ Function decNomad(rs As Object)
     End If
     
     Sheets.Add After:=Sheets(Sheets.count)
-    ActiveSheet.Name = pred + s.id
+    ActiveSheet.Name = "data" + s.id
     
     decDataNomad rs, s, ActiveSheet
     
@@ -52,6 +48,7 @@ Function decInfoNomad(rs As Object, s As Object)
             Set mymatch = mymatches(0)
             If mymatch.SubMatches.count >= 1 Then
                 s.Site.Site = mymatch.SubMatches(0)
+                s.Site.Site = Replace(s.Site.Site, "#", "")
             End If
         ElseIf InStr(1, rs.Cells(i, 1).Value, "TimeStamp", 1) > 0 Then
             Dim reNSr As Object: Set reNSr = CreateObject("vbscript.regexp")
@@ -83,7 +80,7 @@ Function decInfoNomad(rs As Object, s As Object)
                 End If
             Next
 
-            s.DataStart = i + 1
+            s.datastart = i + 1
             Exit For
         End If
     Next i
@@ -99,7 +96,6 @@ Function getSfSN(s As Object, ns As Collection)
     Dim n As NomadSensor
     Dim k As String
     Dim ss As sSensor
-
 
     Dim i
     For i = 1 To ns.count
@@ -124,13 +120,12 @@ Function getSfSN(s As Object, ns As Collection)
             Case "Averag", "Sampl"
                 ss.avg = n.Col
             Case "Max Valu"
-                ss.Max = n.Col
+                ss.max = n.Col
             Case "Min Valu"
                 ss.Min = n.Col
             Case "Std De"
                 ss.Sd = n.Col
         End Select
-        
     Next
     
 End Function
@@ -158,76 +153,51 @@ End Function
 
 
 Function decDataNomad(rs As Object, s As Object, ds As Object)
-    Dim maxX
-    maxX = rs.UsedRange.Rows.count
-    Dim x, y
+    Dim maxX: maxX = rs.UsedRange.Rows.count
     
-    ' Add Title
+    ' Add Time
     ds.Range("A1").Value = "Date & Time Stamp"
-    
-    x = rs.Cells(s.DataStart, 1).Address
-    y = rs.Cells(maxX, 1).Address
-    
-    rs.Range(x + ":" + y).Copy
-    ds.Cells(2, 1).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
-        xlNone, SkipBlanks:=False, Transpose:=False
-    
-    
-    Dim i As Integer
-    i = 1
-    Dim ss As Object
-    Dim k
+    rangeCopy rs.Range(rs.Cells(s.datastart, 1), rs.Cells(maxX, 1)), ds.Cells(2, 1)
+    ds.Range(ds.Cells(2, 1), ds.Cells(maxX - s.datastart, 1)).NumberFormatLocal = "yyyy/m/d h:mm"
 
+    Dim i: i = 1
+    
     For Each k In s.sensorsR
-        Set ss = s.sensorsR(k)
-        ds.Cells(1, (i - 1) * 4 + 2).Value = "CH" + CStr(i) + "Avg"
-        ds.Cells(1, (i - 1) * 4 + 3).Value = "CH" + CStr(i) + "SD"
-        ds.Cells(1, (i - 1) * 4 + 4).Value = "CH" + CStr(i) + "Max"
-        ds.Cells(1, (i - 1) * 4 + 5).Value = "CH" + CStr(i) + "Min"
+        Dim ss As Object: Set ss = s.sensorsR(k)
+        
+        Dim cAvg As Object: Set cAvg = ds.Cells(1, (i - 1) * 4 + 2)
+        Dim cSD As Object: Set cSD = cAvg.Offset(0, 1)
+        Dim cMax As Object: Set cMax = cAvg.Offset(0, 2)
+        Dim cMin As Object: Set cMin = cAvg.Offset(0, 3)
+        cAvg.Value = "CH" + CStr(i) + "Avg"
+        cSD.Value = "CH" + CStr(i) + "SD"
+        cMax.Value = "CH" + CStr(i) + "Max"
+        cMin.Value = "CH" + CStr(i) + "Min"
         
         If ss.avg > 0 Then
-            x = rs.Cells(s.DataStart, ss.avg).Address
-            y = rs.Cells(maxX, ss.avg).Address
-            
-            rs.Range(x + ":" + y).Copy
-            ds.Cells(2, (i - 1) * 4 + 2).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
-        xlNone, SkipBlanks:=False, Transpose:=False
+            rangeCopy rs.Range(rs.Cells(s.datastart, ss.avg), rs.Cells(maxX, ss.avg)), cAvg.Offset(1, 0)
+            ss.avg = cAvg.Column
         End If
-        
-        
+
         If ss.Sd > 0 Then
-            x = rs.Cells(s.DataStart, ss.Sd).Address
-            y = rs.Cells(maxX, ss.Sd).Address
-            
-            rs.Range(x + ":" + y).Copy
-            ds.Cells(2, (i - 1) * 4 + 3).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
-        xlNone, SkipBlanks:=False, Transpose:=False
+            rangeCopy rs.Range(rs.Cells(s.datastart, ss.Sd), rs.Cells(maxX, ss.Sd)), cSD.Offset(1, 0)
+            ss.Sd = cSD.Column
         End If
         
-        If ss.Max > 0 Then
-            x = rs.Cells(s.DataStart, ss.Max).Address
-            y = rs.Cells(maxX, ss.Max).Address
-            
-            rs.Range(x + ":" + y).Copy
-            ds.Cells(2, (i - 1) * 4 + 4).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
-        xlNone, SkipBlanks:=False, Transpose:=False
+        If ss.max > 0 Then
+            rangeCopy rs.Range(rs.Cells(s.datastart, ss.max), rs.Cells(maxX, ss.max)), cMax.Offset(1, 0)
+            ss.max = cMax.Column
         End If
 
         If ss.Min > 0 Then
-            x = rs.Cells(s.DataStart, ss.Min).Address
-            y = rs.Cells(maxX, ss.Min).Address
-            
-            rs.Range(x + ":" + y).Copy
-            ds.Cells(2, (i - 1) * 4 + 5).PasteSpecial Paste:=xlPasteValuesAndNumberFormats, Operation:= _
-        xlNone, SkipBlanks:=False, Transpose:=False
+            rangeCopy rs.Range(rs.Cells(s.datastart, ss.Min), rs.Cells(maxX, ss.Min)), cMin.Offset(1, 0)
+            ss.Min = cMin.Column
         End If
 
         i = i + 1
-
     Next
 
     adjustData ds, s
-    
 End Function
 
 

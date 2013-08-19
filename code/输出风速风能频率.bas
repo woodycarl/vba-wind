@@ -23,17 +23,17 @@ Sub 计算风速风能频率()
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
 
         ' 不同高度风速和风能频率分布
-        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-        pc.Value = "不同高度风速和风能频率分布"
-        s.CurRePo = pc.Offset(1, 0).Address
+        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+        Pc.Value = "不同高度风速和风能频率分布"
+        s.CurRePo = Pc.Offset(1, 0).Address
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
         For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
             
-            Set pc = dst.Range(s.CurRePo)
-            showWfv rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, ss:=ss
+            Set Pc = dst.Range(s.CurRePo)
+            showWfv rst:=rst, dst:=dst, s:=s, po:=Pc, pt:=pt, ss:=ss
         Next
 
         ' 清除数据透视表，删除增加的数据列
@@ -125,9 +125,9 @@ Private Function showWfv(rst As Object, dst As Object, s As Object, po As Object
     End With
     With myChart.Parent
          .height = 200  ' resize
-         .Width = 550   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
+         .width = 550   ' resize
+         .top = 0       ' reposition
+         .left = 0      ' reposition
     End With
 
     myChart.Parent.Cut

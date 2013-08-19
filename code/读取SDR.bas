@@ -1,15 +1,10 @@
 Attribute VB_Name = "读取SDR"
 ' SDR格式数据读取
 
-Private Const pov As String = "B1" ' Version单元格
-Private Const pos As String = "B9" ' site.site单元格
-Private Const pres As String = "site" ' site表前缀
-Private Const pred As String = "data" ' data表前缀
-
 Function decSDR(rst As Object)
     Dim s As Station: Set s = New Station
     
-    Dim sn As String: sn = pres & rst.Range(pos).Value
+    Dim sn As String: sn = "site" & rst.Range("B9").Value
     
     If sheetExist(sn) Then
         s.setSheet Sheets(sn)
@@ -21,17 +16,17 @@ Function decSDR(rst As Object)
         decInfoSDR rst, s
     End If
     
-    rst.Copy After:=Sheets(Sheets.count)
-    ActiveSheet.Name = pred + s.id
-    Rows("1:" & (s.DataStart - 1)).Delete Shift:=xlUp
+    Dim dst As Object: Set dst = copySheet(rst, "data" + s.id)
+
+    dst.Rows("1:" & (s.datastart - 1)).Delete Shift:=xlUp
     
-    adjustData ActiveSheet, s
+    adjustData dst, s
     addStation s
 End Function
 
 Private Function decInfoSDR(rs As Object, s As Object)
     s.System = "SDR"
-    s.Version = rs.Range(pov).Value
+    s.Version = rs.Range("B1").Value
 
     Dim reISH As Object: Set reISH = CreateObject("vbscript.regexp")
     reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
@@ -74,7 +69,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
                 .avg = (rs.Cells(i, 2).Value - 1) * 4 + 2
                 .Sd = (rs.Cells(i, 2).Value - 1) * 4 + 3
                 .Min = (rs.Cells(i, 2).Value - 1) * 4 + 4
-                .Max = (rs.Cells(i, 2).Value - 1) * 4 + 5
+                .max = (rs.Cells(i, 2).Value - 1) * 4 + 5
             End With
             
             If Len(ss.channel) < 1 Then
@@ -102,7 +97,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
             
             i = i + 8
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Date", 1) > 0 Then
-            s.DataStart = i
+            s.datastart = i
             Exit For
         End If
     Next i

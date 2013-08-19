@@ -23,17 +23,17 @@ Sub 绘制威布尔曲线()
         Dim pt As Object: Set pt = oTemp.PivotTables("pt")
 
         ' 代表年的不同高度风频曲线及威布尔参数
-        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-        pc.Value = "代表年的不同高度风频曲线及威布尔参数"
-        s.CurRePo = pc.Offset(1, 0).Address
+        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+        Pc.Value = "代表年的不同高度风频曲线及威布尔参数"
+        s.CurRePo = Pc.Offset(1, 0).Address
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
         For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
             
-            Set pc = dst.Range(s.CurRePo)
-            showWeibull rst:=rst, dst:=dst, s:=s, po:=pc, pt:=pt, ss:=ss
+            Set Pc = dst.Range(s.CurRePo)
+            showWeibull rst:=rst, dst:=dst, s:=s, po:=Pc, pt:=pt, ss:=ss
         Next j
 
         ' 清除数据透视表，删除增加的数据列
@@ -144,9 +144,9 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
 
     With myChart.Parent
          .height = 200  ' resize
-         .Width = 550   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
+         .width = 550   ' resize
+         .top = 0       ' reposition
+         .left = 0      ' reposition
     End With
     
     Dim wpavg As Double: wpavg = Application.WorksheetFunction.Average(rst.Range(wpRange(rst, ss.channel)))

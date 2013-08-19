@@ -14,9 +14,9 @@ Sub 计算风切变指数()
         Dim dst As Object: Set dst = Sheets(s.Result)
 
         ' 代表年的不同高度风切变指数
-        Dim pc As Object: Set pc = dst.Range(s.CurRePo)
-        pc.Value = "代表年的不同高度风切变指数"
-        s.CurRePo = pc.Offset(1, 0).Address
+        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
+        Pc.Value = "代表年的不同高度风切变指数"
+        s.CurRePo = Pc.Offset(1, 0).Address
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
@@ -24,6 +24,10 @@ Sub 计算风切变指数()
         Dim wss As New Collection
         For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
+            If ss.height = 0 Then
+                Err s.id + "计算风切变指数: CH" + ss.channel + " 高度为空"
+                GoTo cf1
+            End If
             
             Dim twss As WS: Set twss = New WS
             With twss
@@ -31,11 +35,17 @@ Sub 计算风切变指数()
                 .avg = Application.WorksheetFunction.Average(rst.Columns(ss.avg))
             End With
             wss.Add twss
+cf1:
         Next j
-
-        Set pc = dst.Range(s.CurRePo)
-        drawWS wss, dst, pc
-        s.CurRePo = pc.Offset(wss.count + 17, 0).Address
+        
+        If wss.count < 2 Then
+            Err s.id + "计算风切变指数: 可用参数不足!"
+            GoTo cf2
+        End If
+        Set Pc = dst.Range(s.CurRePo)
+        drawWS wss, dst, Pc
+        s.CurRePo = Pc.Offset(wss.count + 17, 0).Address
+cf2:
     Next
 End Sub
 
@@ -157,12 +167,12 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
             .Format.TextFrame2.TextRange.Characters.Text = "高度 (m)"
         End With
         
-        With .SeriesCollection(1)
+        With .SeriesCollection(1) '
             .MarkerStyle = -4105
             .Format.Line.Visible = msoFalse
         End With
         
-        .Axes(xlCategory).MinimumScale = dr.Offset(1, 0).Value - 5
+        .Axes(xlCategory).MinimumScale = dr.Offset(1, 0).Value - 5 '
         
         .SetElement (msoElementChartTitleAboveChart)
         With .ChartTitle
@@ -177,9 +187,9 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     
     With myChart.Parent
          .height = 200  ' resize
-         .Width = 550   ' resize
-         .Top = 0       ' reposition
-         .Left = 0      ' reposition
+         .width = 550   ' resize
+         .top = 0       ' reposition
+         .left = 0      ' reposition
     End With
     
     Dim tb As String: tb = "y = " & Format(a, "0.00") & "x" & Format(b, "0.00")
