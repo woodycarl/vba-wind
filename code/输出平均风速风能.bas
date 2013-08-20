@@ -59,11 +59,12 @@ Private Function showAvg(rst As Object, dst As Object, t As Object, s As Object,
         pt.AddDataField pt.PivotFields(ssn), ss.channel + " " + CStr(ss.height) + "m", xlAverage
     Next
     
-    With pt.DataPivotField
-        .Orientation = xlRowField
-        .Position = 1
-    End With
-
+    If wvs.count > 1 Then
+        With pt.DataPivotField
+            .Orientation = xlRowField
+            .Position = 1
+        End With
+    End If
     
     Dim maxX As Integer: maxX = t.UsedRange.Rows.count
     Dim maxY As Integer: maxY = t.UsedRange.Columns.count
@@ -121,10 +122,12 @@ Private Function showAvgH(rst As Object, dst As Object, t As Object, s As Object
         pt.AddDataField pt.PivotFields(ssn), ss.channel + " " + CStr(ss.height) + "m", xlAverage
     Next
     
-    With pt.DataPivotField
-        .Orientation = xlColumnField
-        .Position = 1
-    End With
+    If wvs.count > 1 Then
+        With pt.DataPivotField
+            .Orientation = xlColumnField
+            .Position = 1
+        End With
+    End If
 
     Dim maxX As Integer: maxX = t.UsedRange.Rows.count
     Dim maxY As Integer: maxY = t.UsedRange.Columns.count
@@ -201,7 +204,7 @@ Private Function showAvgMH(rst As Object, dst As Object, s As Object, ss As Obje
         .Position = 1
         Dim x As Integer
         For x = 1 To .PivotItems.count
-            If CStr(x) <> month Then
+            If .PivotItems(x).Name <> month Then
                 .PivotItems(x).Visible = False
             End If
         Next x

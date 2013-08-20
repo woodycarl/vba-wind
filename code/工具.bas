@@ -78,7 +78,7 @@ Function rangeFV(dr As Object, v As Double, m As Variant)
     deleteSheet t
 End Function
 
-Function rangeMerge(dr As Object, v As Variant, Optional horizontalA As Variant = xlCenter, _
+Function rangeMerge(dr As Object, Optional v As Variant = "", Optional horizontalA As Variant = xlCenter, _
         Optional verticalA As Variant = xlCenter, Optional wrapT As Boolean = True)
     With dr
         .HorizontalAlignment = horizontalA

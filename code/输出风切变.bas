@@ -1,22 +1,9 @@
 Attribute VB_Name = "输出风切变"
 
-Sub 计算风切变指数()
-    系统初始化
-    
-    For Each k In Stations
-        Dim s As Object: Set s = Stations(k)
-        
-        If s.CurRePo = "A1" Then
-            initCalResult s
-        End If
-        
-        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
-        Dim dst As Object: Set dst = Sheets(s.Result)
-
+Function 计算风切变指数(s As Object, rst As Object, dst As Object)
         ' 代表年的不同高度风切变指数
-        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
-        Pc.Value = "代表年的不同高度风切变指数"
-        s.CurRePo = Pc.Offset(1, 0).Address
+        s.Pc.Value = "代表年的不同高度风切变指数"
+        s.Pc = s.Pc.Offset(1, 0)
         
         Dim wvs As Object: Set wvs = s.Sensors("wv")
         Dim a: a = wvs.Items
@@ -40,14 +27,12 @@ cf1:
         
         If wss.count < 2 Then
             Err s.id + "计算风切变指数: 可用参数不足!"
-            GoTo cf2
+            Exit Function
         End If
-        Set Pc = dst.Range(s.CurRePo)
-        drawWS wss, dst, Pc
-        s.CurRePo = Pc.Offset(wss.count + 17, 0).Address
-cf2:
-    Next
-End Sub
+
+        drawWS wss, dst, s.Pc
+        s.Pc = s.Pc.Offset(wss.count + 18, 0)
+End Function
 
 Sub 绘制选定多列的风切变图()
     系统初始化
@@ -101,8 +86,8 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     
     Dim maxX: maxX = dst.UsedRange.Rows.count
 
-    Dim rangeH: Set rangeH = dst.Range(dr.Offset(1, 0).Address + ":" + dr.Offset(wss.count, 0).Address)
-    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.count, 1).Address)
+    Dim rangeH: Set rangeH = dst.Range(dr.Offset(1, 0), dr.Offset(wss.count, 0))
+    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1), dr.Offset(wss.count, 1))
 
     Dim rangeSort: Set rangeSort = dst.Range(dr.Offset(0, 0).Address + ":" + dr.Offset(wss.count, 1).Address)
 
@@ -143,55 +128,31 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
         dr.Offset(i, 2 + wss.count).Value = a * dr.Offset(i, 0).Value ^ b
     Next i
     
-    Dim rangeT: Set rangeT = dst.Range(dr.Offset(1, 2 + wss.count).Address + ":" + dr.Offset(wss.count, 2 + wss.count).Address)
-
-    Dim myChart As Object: Set myChart = dst.Shapes.AddChart.Chart
-    With myChart
-        .ChartType = xlXYScatterSmoothNoMarkers
-        
-        .SetSourceData Source:=Range(dst.Name + "!" + rangeH.Address + "," + dst.Name + "!" + rangeA.Address)
-
-        .SeriesCollection.NewSeries
-        .SeriesCollection(2).XValues = "=" + dst.Name + "!" + rangeH.Address
-        .SeriesCollection(2).Values = "=" + dst.Name + "!" + rangeT.Address
+    Dim rangeT: Set rangeT = dst.Range(dr.Offset(1, 2 + wss.count), dr.Offset(wss.count, 2 + wss.count))
     
-        With .Legend
-            .Delete
-        End With
+    Dim rangeX As String: rangeX = dst.Name + "!" + rangeH.Address
+    Dim cRangeY As New Collection, cRangeT As New Collection
 
-        .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0"
-        .Axes(xlValue, xlPrimary).AxisTitle.Text = "风速 (m/s)"
-        .Axes(xlCategory).HasTitle = True
-        With .Axes(xlCategory).AxisTitle
-            .Format.TextFrame2.TextRange.Characters.Text = "高度 (m)"
-        End With
-        
+    cRangeY.Add rangeA.Address
+    cRangeT.Add dst.Name + "!" + dr.Offset(0, 1).Address
+    cRangeY.Add rangeT.Address
+    cRangeT.Add dst.Name + "!" + dr.Offset(0, 2 + wss.count).Address
+    
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+            dpo:=dr.Offset(1 + wss.count, 0), cLegend:=-1, axisFormatX:="0", axisTitleX:="高度 (m)", _
+            axisTitleY:="风速 (m/s)", cType:=xlXYScatterSmoothNoMarkers)
+    
+    With myChart
         With .SeriesCollection(1) '
             .MarkerStyle = -4105
             .Format.Line.Visible = msoFalse
         End With
         
-        .Axes(xlCategory).MinimumScale = dr.Offset(1, 0).Value - 5 '
-        
-        .SetElement (msoElementChartTitleAboveChart)
-        With .ChartTitle
-            .Text = "风切变"
+        .Axes(xlCategory).MinimumScale = dr.Offset(1, 0).Value - 5
+    End With
 
-            With .Characters.Font
-                .Size = 14
-            End With
-        End With
-        
-    End With
-    
-    With myChart.Parent
-         .height = 200  ' resize
-         .width = 550   ' resize
-         .top = 0       ' reposition
-         .left = 0      ' reposition
-    End With
-    
+
     Dim tb As String: tb = "y = " & Format(a, "0.00") & "x" & Format(b, "0.00")
     Dim tbs As Integer: tbs = InStr(1, tb, "x", 1) + 1
     Dim tbo As Integer: tbo = Len(tb) - tbs + 1
@@ -205,13 +166,8 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
             BaselineOffset = 0.3
     otb.TextFrame2.TextRange.Characters(Len(tb) + 3, 1).Font. _
             BaselineOffset = 0.3
-    
-    myChart.Parent.Cut
-    dst.Select
-    dr.Offset(1 + wss.count, 0).Select
-    dst.Pictures.Paste.Select
-    
-    dst.Range(dr.Offset(1, 1).Address + ":" + dr.Offset(wss.count, wss.count + 2).Address).NumberFormatLocal = "0.00"
+
+    dst.Range(dr.Offset(1, 1), dr.Offset(wss.count, wss.count + 2)).NumberFormatLocal = "0.00"
 
 End Function
 

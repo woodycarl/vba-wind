@@ -7,19 +7,19 @@ End Sub
 Sub 显示平均风速风能()
     calResult "平均风速风能"
 End Sub
-Sub 计算2()
+Sub 显示风速风能频率()
     calResult "风速风能频率"
 End Sub
-Sub 计算3()
+Sub 显示风玫瑰图()
     calResult "风玫瑰图"
 End Sub
-Sub 计算4()
+Sub 显示威布尔曲线()
     calResult "威布尔曲线"
 End Sub
-Sub 计算5()
+Sub 显示风切变指数()
     calResult "风切变指数"
 End Sub
-Sub 计算6()
+Sub 显示湍流强度()
     calResult "湍流强度"
 End Sub
 Function calResult(str As String)
@@ -34,23 +34,33 @@ Function calResult(str As String)
         
         Dim rst60 As Object: Set rst60 = Sheets(s.Sheet1h)
         Dim dst As Object: Set dst = Sheets(s.Result)
-
-
+        Dim rst10 As Object
+        If sheetExist(s.Sheet10m) Then
+            Set rst10 = Sheets(s.Sheet10m)
+        Else
+            Set rst10 = Nothing
+        End If
+        
         Select Case str
             Case "平均风速风能"
-                计算平均风速风能 s, rst60, dst
+                计算平均风速风能 s:=s, rst:=rst60, dst:=dst
             Case "风速风能频率"
-            
+                计算风速风能频率 s:=s, rst:=rst60, dst:=dst
             Case "风玫瑰图"
-            
+                绘制风玫瑰图 s:=s, rst:=rst60, dst:=dst
             Case "威布尔曲线"
-            
+                绘制威布尔曲线 s:=s, rst:=rst60, dst:=dst
             Case "风切变指数"
-            
+                计算风切变指数 s:=s, rst:=rst60, dst:=dst
             Case "湍流强度"
-            
+                计算湍流强度 s:=s, rst10:=rst10, rst60:=rst60, dst:=dst
             Case "所有"
-            
+                计算平均风速风能 s:=s, rst:=rst60, dst:=dst
+                计算风速风能频率 s:=s, rst:=rst60, dst:=dst
+                绘制风玫瑰图 s:=s, rst:=rst60, dst:=dst
+                绘制威布尔曲线 s:=s, rst:=rst60, dst:=dst
+                计算风切变指数 s:=s, rst:=rst60, dst:=dst
+                计算湍流强度 s:=s, rst10:=rst10, rst60:=rst60, dst:=dst
         End Select
         
     Next

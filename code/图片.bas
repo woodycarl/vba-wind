@@ -30,7 +30,9 @@ Function drawChart(rangeX As String, _
         Optional axisTitleY As String = "", _
         Optional cType As Variant = xlLine, _
         Optional cToPic As Boolean = False, _
-        Optional axisFormatY As String = "0.0", _
+        Optional axisFormatX As String = "", _
+        Optional axisFormatY As String = "", _
+        Optional secondaryAxisFormatY As String = "0.0", _
         Optional width As Double = 550, _
         Optional height As Double = 200, _
         Optional cTitle As String = "", _
@@ -80,15 +82,16 @@ Function drawChart(rangeX As String, _
             With .Axes(xlCategory).AxisTitle
                 .Format.TextFrame2.TextRange.Characters.Text = axisTitleX
             End With
+
         End If
+        If axisFormatX <> "" Then
+            .Axes(xlCategory).TickLabels.NumberFormatLocal = axisFormatX
+        End If
+        
         If axisTitleY <> "" Then
             .SetElement (msoElementPrimaryValueAxisTitleRotated)
             .Axes(xlValue, xlPrimary).AxisTitle.Text = axisTitleY
-            
-            If axisFormatY <> "" Then
-                .Axes(xlValue).TickLabels.NumberFormatLocal = axisFormatY
-            End If
-            
+
             If secondaryAxisTitleY <> "" Then
                 For i = 1 To secondarySeries.count
                     .SeriesCollection(secondarySeries(i)).AxisGroup = 2
@@ -97,8 +100,11 @@ Function drawChart(rangeX As String, _
                 .SetElement (msoElementSecondaryValueAxisTitleRotated)
                 .Axes(xlValue, xlSecondary).AxisTitle.Text = secondaryAxisTitleY
                 
-                .Axes(xlValue, xlSecondary).TickLabels.NumberFormatLocal = "0.0"
+                .Axes(xlValue, xlSecondary).TickLabels.NumberFormatLocal = secondaryAxisFormatY
             End If
+        End If
+        If axisFormatY <> "" Then
+            .Axes(xlValue).TickLabels.NumberFormatLocal = axisFormatY
         End If
 
         If cTitle <> "" Then

@@ -29,7 +29,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
     s.Version = rs.Range("B1").Value
 
     Dim reISH As Object: Set reISH = CreateObject("vbscript.regexp")
-    reISH.Pattern = "^([\d\.]+)\s*(m|ft)"
+    reISH.Pattern = "^([\d\.]+)\s*(m|ft)?"
 
     Dim i As Single
     For i = 1 To rs.UsedRange.Rows.count
@@ -48,11 +48,23 @@ Private Function decInfoSDR(rs As Object, s As Object)
                 .ProjectCode = rs.Cells(i + 3, 2).Value
                 .ProjectDesc = rs.Cells(i + 4, 2).Value
                 .SiteLocation = rs.Cells(i + 5, 2).Value
-                .SiteElevation = rs.Cells(i + 6, 2).Value
+                '.SiteElevation = rs.Cells(i + 6, 2).Value
                 .Latitude = rs.Cells(i + 7, 2).Value
                 .Longitude = rs.Cells(i + 8, 2).Value
                 .TimeOffset = rs.Cells(i + 9, 2).Value
             End With
+
+            Set mymatches = reISH.Execute(rs.Cells(i + 6, 2).Value)
+            If mymatches.count >= 1 Then
+                Set mymatch = mymatches(0)
+                If mymatch.SubMatches.count >= 2 Then
+                    s.Site.SiteElevation = mymatch.SubMatches(0)
+
+                    If mymatch.SubMatches(1) = "ft" Then
+                        s.Site.SiteElevation = s.Site.SiteElevation * 0.3048
+                    End If
+                End If
+            End If
 
             i = i + 9
         ElseIf InStr(1, rs.Cells(i, 1).Value, "Channel", 1) > 0 Then
@@ -88,7 +100,7 @@ Private Function decInfoSDR(rs As Object, s As Object)
                 Set mymatch = mymatches(0)
                 If mymatch.SubMatches.count >= 2 Then
                     ss.height = mymatch.SubMatches(0)
-        
+
                     If mymatch.SubMatches(1) = "ft" Then
                         ss.height = ss.height * 0.3048
                     End If

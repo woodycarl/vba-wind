@@ -1,64 +1,49 @@
 Attribute VB_Name = "输出风玫瑰图"
 
-Sub 绘制风玫瑰图()
-    系统初始化
+Function 绘制风玫瑰图(s As Object, rst As Object, dst As Object)
+    ' 代表年的全年风向、风能频率分布玫瑰图
+
+    s.Pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
+    s.Pc = s.Pc.Offset(1, 0)
     
-    For Each k In Stations
-        Dim s As Object: Set s = Stations(k)
+    Dim wds As Object: Set wds = s.Sensors("wd")
+    Dim ad: ad = wds.Items
+    
+    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim av: av = wvs.Items
+    
+    ' 增加数据透视表
+    Dim t As Object: Set t = newSheet("tshowwindrose")
+    Dim pt As Object: Set pt = newPT(t, s.dataRange, "pt")
+    
+    For i = 0 To wvs.count - 1
+        Dim ssv As Object: Set ssv = av(i)
+        Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
         
-        If s.CurRePo = "A1" Then
-            initCalResult s
-        End If
-        
-        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
-        Dim dst As Object: Set dst = Sheets(s.Result)
 
-        oTemp.UsedRange.Clear
-        
-        ' 增加数据透视表
-        oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.dataRange, Version:=xlPivotTableVersion14). _
-            CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
-            DefaultVersion:=xlPivotTableVersion14
-        Dim pt As Object: Set pt = oTemp.PivotTables("pt")
-
-        ' 代表年的全年风向、风能频率分布玫瑰图
-        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
-        Pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
-        s.CurRePo = Pc.Offset(1, 0).Address
-        
-        Dim wds As Object: Set wds = s.Sensors("wd")
-        Dim ad: ad = wds.Items
-        
-        Dim wvs As Object: Set wvs = s.Sensors("wv")
-        Dim av: av = wvs.Items
-        
-        For i = 0 To wvs.count - 1
-            Dim ssv As Object: Set ssv = av(i)
-            Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
-            
-            Set Pc = dst.Range(s.CurRePo)
-            showWindrose rst, dst, s, Pc, pt, ssv, ssd
-        Next
-
-        ' 清除数据透视表，删除增加的数据列
-        oTemp.Range(pt.TableRange2.Address).Delete Shift:=xlUp
+        showWindrose rst, dst, s, t, pt, ssv, ssd
     Next
-End Sub
+
+    deleteSheet t
+End Function
 
 
-Private Function showWindrose(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ssv As Object, ssd As Object)
+Private Function showWindrose(rst As Object, dst As Object, s As Object, t As Object, pt As Object, ssv As Object, ssd As Object)
     ' 代表年的16个方位扇区不同高度出现风向、风能频率
     Dim arrWr: arrWr = Array("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N")
+
+    s.Pc.Value = "CH" + ssv.channel + " " + CStr(ssv.height) + "m 代表年的全年风向、风能频率分布玫瑰图"
+    Dim po As Object: Set po = s.Pc.Offset(1, 0)
+
     pt.ClearTable
-    
+
     With pt.PivotFields("CH" + ssd.channel + "Wr")
         .Orientation = xlColumnField
         .Position = 1
     End With
     
-    Dim ssvn As String: ssvn = ssv.channel + " " + CStr(ssv.height) + "m " + "风向频率"
-    Dim sspn As String: sspn = ssv.channel + " " + CStr(ssv.height) + "m " + "风能频率"
+    Dim ssvn As String: ssvn = "风向频率"
+    Dim sspn As String: sspn = "风能频率"
     
     pt.AddDataField pt.PivotFields("CH" + ssv.channel + "Avg"), ssvn, xlCount
     pt.AddDataField pt.PivotFields("CH" + ssv.channel + "WP"), sspn, xlSum
@@ -83,57 +68,32 @@ Private Function showWindrose(rst As Object, dst As Object, s As Object, po As O
         .RowGrand = False
     End With
     
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
+    Dim maxX As Integer: maxX = t.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = t.UsedRange.Columns.count
     
-    oTemp.Range("A2:" + oTemp.Cells(maxX, maxY).Address).Copy
-    
-    po.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
-        :=False, Transpose:=False
+    rangeCopy t.Range("A2:" + t.Cells(maxX, maxY).Address), po
+
     po.Value = ""
     For i = 1 To maxY - 1
         po.Offset(0, i).Value = arrWr(po.Offset(0, i).Value - 1)
     Next
     
-    '乘100显示
-    po.Offset(0, maxY).Value = 100
-    po.Offset(0, maxY).Copy
-    Dim range1 As Object
-    Set range1 = dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(maxX - 2, maxY - 1).Address)
-    range1.PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
-        SkipBlanks:=False, Transpose:=False
-    range1.NumberFormatLocal = "0.00_ "
-    po.Offset(0, maxY).Clear
-    
-    Dim range2 As Object: Set range2 = dst.Range(po.Offset(0, 0).Address + ":" + po.Offset(maxX - 2, maxY - 1).Address)
+    Dim range1 As Object: Set range1 = dst.Range(po.Offset(1, 1), po.Offset(maxX - 2, maxY - 1))
+    rangeFV dr:=range1, v:=100, m:=xlMultiply
+    range1.NumberFormatLocal = "0.00"
 
-    Dim myChart As Object: Set myChart = dst.Shapes.AddChart.Chart
-    With myChart
-        .ChartType = xlRadar
-        .SetSourceData Source:=range2
-        
-        With .Legend
-            .Position = xlTop
-        End With
-        
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0_ "
-    End With
-    With myChart.Parent
-         .height = 300  ' resize
-         .width = 300   ' resize
-         .top = 0       ' reposition
-         .left = 0      ' reposition
-    End With
 
-    myChart.Parent.Cut
-    dst.Select
-    po.Offset(3, 0).Select
-    dst.Pictures.Paste.Select
+    Dim rangeX As String: rangeX = dst.Name + "!" + po.Offset(0, 1).Address + ":" + po.Offset(0, maxY - 1).Address
+    Dim cRangeY As New Collection, cRangeT As New Collection
+    For i = 1 To 2
+        cRangeY.Add po.Offset(i, 1).Address + ":" + po.Offset(i, maxY - 1).Address
+        cRangeT.Add dst.Name + "!" + po.Offset(i, 0).Address
+    Next i
     
-    pt.ClearTable
-    
-    s.CurRePo = po.Offset(3 + 23, 0).Address
-    
+    drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+            dpo:=po.Offset(3, 0), cType:=xlRadar, height:=300, width:=300, axisFormatY:="0"
+
+    s.Pc = po.Offset(3 + 23, 0)
 End Function
 
 

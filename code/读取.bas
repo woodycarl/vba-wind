@@ -20,6 +20,9 @@ Sub 读取数据()
         Dim s As Object: Set s = Stations(k)
         
         sensorClassfy s
+        
+        deleteZero stn:=s.Sheet1h, s:=s
+        deleteZero stn:=s.Sheet10m, s:=s
     Next
 End Sub
 Private Function init()
@@ -46,7 +49,28 @@ Private Function init()
     ' 2012/1/1 23:50
     ' 2012/2/1 0:00
 End Function
-
+Private Function deleteZero(stn As String, s As Object)
+    If stn <> "" And sheetExist(stn) Then
+        Dim st As Object: Set st = Sheets(stn)
+        
+        st.UsedRange.AutoFilter
+        
+        Dim wvs As Object: Set wvs = s.Sensors("wv")
+        Dim a: a = wvs.Items
+        For j = 0 To wvs.count - 1
+            Dim ss As Object: Set ss = a(j)
+            
+            st.UsedRange.AutoFilter Field:=ss.avg, Criteria1:="<>0", Operator:=xlAnd
+        Next
+        
+        Dim tt As Object: Set tt = newSheet("tdeletezero")
+        rangeCopy st.UsedRange, tt.Cells(1, 1)
+        Dim n As String: n = st.Name
+        deleteSheet st
+        tt.Name = n
+        tt.Columns(1).NumberFormatLocal = "yyyy/m/d h:mm"
+    End If
+End Function
 
 
 Function decRaw(st As Object)

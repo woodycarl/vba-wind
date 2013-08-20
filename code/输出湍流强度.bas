@@ -1,67 +1,51 @@
 Attribute VB_Name = "输出湍流强度"
 
-Sub 计算湍流强度()
-    系统初始化
-
-    For Each k In Stations
-        Dim s As Object: Set s = Stations(k)
-        
-        If s.CurRePo = "A1" Then
-            initCalResult s
-        End If
-        
-        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
-        Dim dst As Object: Set dst = Sheets(s.Result)
-
-        Dim wts As New Collection
-        
-        ' 代表年的不同高度湍流强度
-        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
-        Pc.Value = "代表年的不同高度湍流强度"
-        s.CurRePo = Pc.Offset(1, 0).Address
-        
-        Dim wvs As Object: Set wvs = s.Sensors("wv")
-        Dim a: a = wvs.Items
-        For j = 0 To wvs.count - 1
-            Dim ss As Object: Set ss = a(j)
-            
-            If ss.height = 0 Then
-                Err s.id + "计算风切变指数: CH" + ss.channel + " 高度为空"
-                GoTo cf1
-            End If
-            
-            Dim v As WT: Set v = New WT
-            With v
-                .height = ss.height
-                Set .rt60 = rst.Columns(1)
-                Set .r60 = rst.Columns(ss.avg)
-                Set .rs60 = rst.Columns(ss.Sd)
-                .c60 = rst.UsedRange.Rows.count
-            End With
-            
-            If sheetExist(s.Sheet10m) Then
-                Dim rst10 As Object: Set rst10 = Sheets(s.Sheet10m)
-                Set v.rt10 = rst10.Columns(1)
-                Set v.r10 = rst10.Columns(ss.avg)
-                Set v.rs10 = rst10.Columns(ss.Sd)
-                v.c10 = rst10.UsedRange.Rows.count
-            End If
-
-            wts.Add v
-cf1:
-        Next j
-        
-        If wts.count < 2 Then
-            Err s.id + "计算湍流强度: 可用参数不足!"
-            GoTo cf2
-        End If
-        Set Pc = dst.Range(s.CurRePo)
-        calTurbs dst, Pc, wts
-        s.CurRePo = Pc.Offset(wvs.count + 17, 0).Address
-cf2:
-    Next
+Function 计算湍流强度(s As Object, rst10 As Object, rst60 As Object, dst As Object)
+    ' 代表年的不同高度湍流强度
+    s.Pc.Value = "代表年的不同高度湍流强度"
+    s.Pc = s.Pc.Offset(1, 0)
     
-End Sub
+    Dim wts As New Collection
+    
+    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim a: a = wvs.Items
+    For j = 0 To wvs.count - 1
+        Dim ss As Object: Set ss = a(j)
+        
+        If 0 = ss.height Then
+            Err s.id + "计算风切变指数: CH" + ss.channel + " 高度为空"
+            GoTo cf1
+        End If
+        
+        Dim v As WT: Set v = New WT
+        With v
+            .height = ss.height
+            Set .rt60 = rst60.Columns(1)
+            Set .r60 = rst60.Columns(ss.avg)
+            Set .rs60 = rst60.Columns(ss.Sd)
+            .c60 = rst60.UsedRange.Rows.count
+        End With
+        
+        If Not rst10 Is Nothing Then
+            Set v.rt10 = rst10.Columns(1)
+            Set v.r10 = rst10.Columns(ss.avg)
+            Set v.rs10 = rst10.Columns(ss.Sd)
+            v.c10 = rst10.UsedRange.Rows.count
+        End If
+
+        wts.Add v
+cf1:
+    Next j
+    
+    If wts.count < 2 Then
+        Err s.id + "计算湍流强度: 可用参数不足!"
+        Exit Function
+    End If
+
+    calTurbs dst, s.Pc, wts
+    s.Pc = s.Pc.Offset(wvs.count + 17, 0)
+
+End Function
 
 Sub 计算选定多列的湍流强度()
     系统初始化
@@ -160,9 +144,9 @@ Function calTurbs(dst As Object, dr As Object, wts As Collection)
                 
                 If dr.Offset(1 + wts.count, j).Value = "" Then
                     dr.Offset(1 + wts.count, j).Value = k(j)
-                    dr.Offset(i + 1 + wts.count, j).Value = 0.75 * 0.16 + 5.6 * 0.16 / dr.Offset(1 + wts.count, j).Value
-                    dr.Offset(i + 2 + wts.count, j).Value = 0.75 * 0.14 + 5.6 * 0.14 / dr.Offset(1 + wts.count, j).Value
-                    dr.Offset(i + 3 + wts.count, j).Value = 0.75 * 0.12 + 5.6 * 0.12 / dr.Offset(1 + wts.count, j).Value
+                    dr.Offset(1 + 1 + wts.count, j).Value = 0.75 * 0.16 + 5.6 * 0.16 / dr.Offset(1 + wts.count, j).Value
+                    dr.Offset(1 + 2 + wts.count, j).Value = 0.75 * 0.14 + 5.6 * 0.14 / dr.Offset(1 + wts.count, j).Value
+                    dr.Offset(1 + 3 + wts.count, j).Value = 0.75 * 0.12 + 5.6 * 0.12 / dr.Offset(1 + wts.count, j).Value
                 End If
             End If
         Next j
@@ -177,29 +161,19 @@ Function calTurbs(dst As Object, dr As Object, wts As Collection)
         maxY = maxY + 1
     Wend
     
-    Dim range2 As Object: Set range2 = dst.Range(dr.Offset(2 + wts.count, 0).Address + ":" + dr.Offset(4 + 2 * wts.count, maxY).Address)
-    Dim range3 As String: range3 = dr.Offset(1 + wts.count, 1).Address + ":" + dr.Offset(1 + wts.count, maxY).Address
-    Dim range4 As Object: Set range4 = dst.Range(dr.Offset(1 + wts.count, 0).Address + ":" + dr.Offset(4 + 2 * wts.count, maxY).Address)
 
-    Dim myChart As Object: Set myChart = dst.Shapes.AddChart.Chart
+    Dim rangeX As String: rangeX = dst.Name + "!" + dr.Offset(1 + wts.count, 1).Address + ":" + dr.Offset(1 + wts.count, maxY).Address
+    Dim cRangeY As New Collection, cRangeT As New Collection
+    For i = 2 + wts.count To 4 + 2 * wts.count
+        cRangeY.Add dr.Offset(i, 1).Address + ":" + dr.Offset(i, maxY).Address
+        cRangeT.Add dst.Name + "!" + dr.Offset(i, 0).Address
+    Next i
+    
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+            dpo:=dr.Offset(1 + wts.count, 0), axisTitleX:="", axisTitleY:="", axisFormatX:="0", _
+            cType:=xlXYScatterSmoothNoMarkers)
     With myChart
-        .ChartType = xlXYScatterSmoothNoMarkers ' xlLine
-        .SetSourceData Source:=range4
-        '.SeriesCollection(1).XValues = "=" + dst.Name + "!" + range3
-        
-        With .Legend
-            .Position = xlTop
-        End With
-        
-        .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0.0_ "
-        .Axes(xlValue, xlPrimary).AxisTitle.Text = "湍流强度"
-        .Axes(xlCategory).HasTitle = True
-        With .Axes(xlCategory).AxisTitle
-            .Format.TextFrame2.TextRange.Characters.Text = "风速 (m/s)"
-        End With
-        
-
         With .SeriesCollection(1).Format.Line
             .ForeColor.ObjectThemeColor = msoThemeColorText1
         End With
@@ -211,22 +185,8 @@ Function calTurbs(dst As Object, dr As Object, wts As Collection)
             .ForeColor.ObjectThemeColor = msoThemeColorText1
             .Transparency = 0.6
         End With
-        
-
-    End With
-    With myChart.Parent
-         .height = 200  ' resize
-         .width = 550   ' resize
-         .top = 0       ' reposition
-         .left = 0      ' reposition
     End With
 
-    myChart.Parent.Cut
-    dst.Select
-    dr.Offset(1 + wts.count, 0).Select
-    dst.Pictures.Paste.Select
-    'dst.Paste
-    
 End Function
 
 Function calTurb(v As WT, interval As Double, limit As Double) As Scripting.Dictionary
@@ -245,15 +205,14 @@ Function calTurb(v As WT, interval As Double, limit As Double) As Scripting.Dict
         Dim t10 As Object: Set t10 = newSheet("T10")
     
         Dim rt10a As String: rt10a = v.rt10.Parent.Name + "!" + Replace(v.rt10.Cells(2, 1).Address, "$", "")
-        t10.Cells(2, 1).Formula = "=year(" + rt10a + ") & month(" + rt10a + ") & day(" + rt10a + ") & hour(" + rt10a + ")"
+        t10.Cells(2, 1).Formula = "=year(" + rt10a + ") & ""/"" & month(" + rt10a + ") & ""/"" & day(" + rt10a + ") & ""/"" & hour(" + rt10a + ")"
         t10.Cells(2, 1).AutoFill Destination:=t10.Range("A2:A" & v.c10)
         
         rangeCopy v.r10, t10.Cells(1, 2)
-    
+        
         rangeCopy v.rs10, t10.Cells(1, 3)
-        v.r10.Copy
-        t10.Cells(1, 3).PasteSpecial Paste:=xlPasteAll, Operation:=xlDivide, SkipBlanks _
-            :=False, Transpose:=False
+
+        rangeF t10.Range(t10.Cells(1, 3), t10.Cells(t10.UsedRange.Rows.count, 3)), v.r10, xlDivide
     
         t10.Cells(1, 1).Value = tn
         t10.Cells(1, 2).Value = an
@@ -283,6 +242,7 @@ Function calTurb(v As WT, interval As Double, limit As Double) As Scripting.Dict
         End With
         
         Set t = newSheet("Twt")
+
         rangeCopy tt10.UsedRange, t.Cells(1, 1)
         
         Application.DisplayAlerts = False
@@ -295,7 +255,7 @@ Function calTurb(v As WT, interval As Double, limit As Double) As Scripting.Dict
         Dim t60 As Object: Set t60 = newSheet("T60")
 
         Dim rt60a As String: rt60a = v.rt60.Parent.Name + "!" + Replace(v.rt60.Cells(2, 1).Address, "$", "")
-        t60.Cells(2, 1).Formula = "=year(" + rt60a + ") & month(" + rt60a + ") & day(" + rt60a + ") & hour(" + rt60a + ")"
+        t60.Cells(2, 1).Formula = "=year(" + rt60a + ") & ""/"" & month(" + rt60a + ") & ""/"" & day(" + rt60a + ") & ""/"" & hour(" + rt60a + ")"
         t60.Cells(2, 1).AutoFill Destination:=t60.Range("A2:A" & v.c60)
     
         rangeCopy v.r60, t60.Cells(1, 2)

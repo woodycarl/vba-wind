@@ -1,62 +1,40 @@
 Attribute VB_Name = "输出威布尔曲线"
 
-Sub 绘制威布尔曲线()
-    系统初始化
+Function 绘制威布尔曲线(s As Object, rst As Object, dst As Object)
+    ' 代表年的不同高度风频曲线及威布尔参数
+    s.Pc.Value = "代表年的不同高度风频曲线及威布尔参数"
+    s.Pc = s.Pc.Offset(1, 0)
     
-    For Each k In Stations
-        Dim s As Object: Set s = Stations(k)
+    ' 增加数据透视表
+    Dim t As Object: Set t = newSheet("tcalweibull")
+    Dim pt As Object: Set pt = newPT(t, s.dataRange, "pt")
+    
+    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim a: a = wvs.Items
+    For j = 0 To wvs.count - 1
+        Dim ss As Object: Set ss = a(j)
         
-        If s.CurRePo = "A1" Then
-            initCalResult s
-        End If
-        
-        Dim rst As Object: Set rst = Sheets(s.Sheet1h)
-        Dim dst As Object: Set dst = Sheets(s.Result)
 
-        oTemp.UsedRange.Clear
-        
-        ' 增加数据透视表
-        oWB.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
-            s.dataRange, Version:=xlPivotTableVersion14). _
-            CreatePivotTable TableDestination:=oTemp.Name + "!R1C1", TableName:="pt", _
-            DefaultVersion:=xlPivotTableVersion14
-        Dim pt As Object: Set pt = oTemp.PivotTables("pt")
+        showWeibull rst:=rst, dst:=dst, s:=s, t:=t, pt:=pt, ss:=ss
+    Next j
 
-        ' 代表年的不同高度风频曲线及威布尔参数
-        Dim Pc As Object: Set Pc = dst.Range(s.CurRePo)
-        Pc.Value = "代表年的不同高度风频曲线及威布尔参数"
-        s.CurRePo = Pc.Offset(1, 0).Address
-        
-        Dim wvs As Object: Set wvs = s.Sensors("wv")
-        Dim a: a = wvs.Items
-        For j = 0 To wvs.count - 1
-            Dim ss As Object: Set ss = a(j)
-            
-            Set Pc = dst.Range(s.CurRePo)
-            showWeibull rst:=rst, dst:=dst, s:=s, po:=Pc, pt:=pt, ss:=ss
-        Next j
-
-        ' 清除数据透视表，删除增加的数据列
-        oTemp.Range(pt.TableRange2.Address).Delete Shift:=xlUp
-        
-    Next
-End Sub
+    deleteSheet t
+End Function
 
 
-Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Object, pt As Object, ss As Object)
+Private Function showWeibull(rst As Object, dst As Object, s As Object, t As Object, pt As Object, ss As Object)
     Dim maxX1 As Integer: maxX1 = rst.UsedRange.Rows.count
     Dim range1 As Object: Set range1 = rst.Range(rst.Cells(2, ss.avg).Address + ":" + rst.Cells(maxX1, ss.avg).Address)
 
-    Dim sr As Double
-    sr = Sqr(Application.WorksheetFunction.DevSq(range1) / (maxX1 - 1))
-    Dim avg As Double
-    avg = Application.WorksheetFunction.Average(range1)
+    s.Pc.Value = "CH" + ss.channel + " " + CStr(ss.height) + "m 代表年威布尔曲线图"
+    Dim po As Object: Set po = s.Pc.Offset(1, 0)
 
-    Dim k As Double, c As Double
-    k = (avg / sr) ^ 1.086
-    c = avg / gamma(1 + 1 / k)
+    Dim sr As Double: sr = Sqr(Application.WorksheetFunction.DevSq(range1) / (maxX1 - 1))
+    Dim avg As Double: avg = Application.WorksheetFunction.Average(range1)
 
-    
+    Dim k As Double: k = (avg / sr) ^ 1.086
+    Dim c As Double: c = avg / gamma(1 + 1 / k)
+
     pt.ClearTable
     
     With pt.PivotFields("CH" + ss.channel + "Wb")
@@ -65,7 +43,7 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
     End With
 
 
-    Dim ssn As String: ssn = ss.channel + " " + CStr(ss.height) + "m"
+    Dim ssn As String: ssn = "风速频率"
 
     pt.AddDataField pt.PivotFields("CH" + ss.channel + "Avg"), ssn, xlCount
     
@@ -80,14 +58,12 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
     End With
     
 
-    Dim maxX As Integer: maxX = oTemp.UsedRange.Rows.count
-    Dim maxY As Integer: maxY = oTemp.UsedRange.Columns.count
-    oTemp.Range("A2:" + oTemp.Cells(maxX, maxY).Address).Copy
-    po.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
-        :=False, Transpose:=False
-        
+    Dim maxX As Integer: maxX = t.UsedRange.Rows.count
+    Dim maxY As Integer: maxY = t.UsedRange.Columns.count
+    rangeCopy t.Range("A2:" + t.Cells(maxX, maxY).Address), po
+
     po.Value = "风速 (m/s)"
-    po.Offset(1, 0).Value = ssn + " 频率 (%)"
+    po.Offset(1, 0).Value = "风速频率 (%)"
     
     po.Offset(2, 0).Value = "风速"
     po.Offset(3, 0).Value = "风速频率"
@@ -109,46 +85,25 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
             End If
             
             po.Offset(4, x).Value = 100 * weibull(k, c, v)
-            
         Next j
     Next i
     
     Dim tdmax As Integer: tdmax = (maxY - 1) * 100 + 1
     
-    Dim range2 As Object: Set range2 = dst.Range(po.Offset(3, 0).Address + ":" + po.Offset(4, tdmax).Address)
-    Dim range3 As String: range3 = po.Offset(2, 1).Address + ":" + po.Offset(2, tdmax).Address
-    Dim myChart As Object: Set myChart = dst.Shapes.AddChart.Chart
-    With myChart
-        .ChartType = xlLine
-        .SetSourceData Source:=range2
-        
-        With .Legend
-            .Position = xlTop
-        End With
-        
-        .Axes(xlCategory).TickLabelSpacing = 100
-        .Axes(xlCategory).TickMarkSpacing = 100
-        .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue).TickLabels.NumberFormatLocal = "0_ "
-        .Axes(xlValue, xlPrimary).AxisTitle.Text = unit
-        .Axes(xlCategory).HasTitle = True
-        With .Axes(xlCategory).AxisTitle
-            .Format.TextFrame2.TextRange.Characters.Text = "风速 (m/s)"
-        End With
-        
-        .SetElement (msoElementPrimaryValueAxisTitleRotated)
-        .Axes(xlValue, xlPrimary).AxisTitle.Text = "频率 (%)"
-        
-        .SeriesCollection(1).XValues = "=" + dst.Name + "!" + range3
-    End With
-
-    With myChart.Parent
-         .height = 200  ' resize
-         .width = 550   ' resize
-         .top = 0       ' reposition
-         .left = 0      ' reposition
-    End With
+    Dim rangeX As String: rangeX = dst.Name + "!" + po.Offset(2, 1).Address + ":" + po.Offset(2, tdmax).Address
+    Dim cRangeY As New Collection, cRangeT As New Collection
+    For i = 3 To 4
+        cRangeY.Add po.Offset(i, 1).Address + ":" + po.Offset(i, tdmax).Address
+        cRangeT.Add dst.Name + "!" + po.Offset(i, 0).Address
+    Next i
     
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+            dpo:=po.Offset(2, 0), axisTitleX:="风速 (m/s)", axisTitleY:="频率 (%)", axisFormatX:="0", _
+            tickSpacingX:=100)
+    
+    myChart.SeriesCollection(1).ChartType = xlArea
+
     Dim wpavg As Double: wpavg = Application.WorksheetFunction.Average(rst.Range(wpRange(rst, ss.channel)))
 
     With myChart.Shapes.AddTextbox(msoTextOrientationHorizontal, 400, 50, 100, 100)
@@ -161,28 +116,15 @@ Private Function showWeibull(rst As Object, dst As Object, s As Object, po As Ob
                 .Size = 11
             End With
         End With
-
     End With
-    
-    myChart.Parent.Cut
-    dst.Select
-    po.Offset(2, 0).Select
-    dst.Pictures.Paste.Select
-    
-    dst.Range(po.Offset(2, 0).Address + ":" + po.Offset(4, tdmax).Address).Clear
-    '乘100显示 提取为函数
-    Dim t100 As Object: Set t100 = po.Offset(0, maxY)
-    t100.Value = 100
-    t100.Copy
-    With dst.Range(po.Offset(1, 1).Address + ":" + po.Offset(1, maxY - 1).Address)
-        .PasteSpecial Paste:=xlPasteAll, Operation:=xlMultiply, _
-                      SkipBlanks:=False, Transpose:=False
-        .NumberFormatLocal = "0.00_ "
-    End With
-    t100.Clear
-    
-    s.CurRePo = po.Offset(2 + 16, 0).Address
 
+    'dst.Range(po.Offset(2, 0).Address + ":" + po.Offset(4, tdmax).Address).Clear
+    
+    Dim range2 As Object: Set range2 = dst.Range(po.Offset(1, 1), po.Offset(1, maxY - 1))
+    rangeFV dr:=range2, v:=100, m:=xlMultiply
+    range2.NumberFormatLocal = "0.00"
+
+    s.Pc = po.Offset(2 + 16, 0)
 End Function
 
 

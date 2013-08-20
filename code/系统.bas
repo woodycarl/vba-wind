@@ -3,7 +3,6 @@ Public oWB           As Object
 Public oHome         As Object
 Public oRecord       As Object
 Public oConfig       As Object
-Public oTemp         As Object
 Public Stations     As New Scripting.Dictionary
 
 Public OutputDir    As String
@@ -14,14 +13,7 @@ Sub 系统初始化()
     Set oWB = ActiveWorkbook
     Set oHome = oWB.Sheets("首页")
     Set oRecord = oWB.Sheets("记录")
-    Set oTemp = oWB.Sheets("T")
-    
-    While oTemp.PivotTables.count > 0
-        oTemp.Range(oTemp.PivotTables(1).TableRange2.Address).Delete Shift:=xlUp
-    Wend
-    
-    oTemp.Cells.ClearContents
-    
+
     Set oConfig = New Setting
     oConfig.init oWB.Sheets("设置")
     
