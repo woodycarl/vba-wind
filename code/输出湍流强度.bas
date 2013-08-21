@@ -7,7 +7,7 @@ Function 计算湍流强度(s As Object, rst10 As Object, rst60 As Object, dst A
     
     Dim wts As New Collection
     
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)

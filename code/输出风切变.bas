@@ -5,7 +5,7 @@ Function 计算风切变指数(s As Object, rst As Object, dst As Object)
         s.Pc.Value = "代表年的不同高度风切变指数"
         s.Pc = s.Pc.Offset(1, 0)
         
-        Dim wvs As Object: Set wvs = s.Sensors("wv")
+        Dim wvs As Object: Set wvs = s.sensors("风速")
         Dim a: a = wvs.Items
         
         Dim wss As New Collection
@@ -141,7 +141,7 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     Dim myChart As Object
     Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=dr.Offset(1 + wss.count, 0), cLegend:=-1, axisFormatX:="0", axisTitleX:="高度 (m)", _
-            axisTitleY:="风速 (m/s)", cType:=xlXYScatterSmoothNoMarkers)
+            axisTitleY:="风速 (m/s)", cType:=xlXYScatterSmoothNoMarkers, axisFormatY:="0.0")
     
     With myChart
         With .SeriesCollection(1) '

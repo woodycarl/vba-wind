@@ -8,7 +8,7 @@ Sub 计算风速风能频率(s As Object, rst As Object, dst As Object)
     s.Pc.Value = "不同高度风速和风能频率分布"
     s.Pc = s.Pc.Offset(1, 0)
     
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
@@ -87,7 +87,7 @@ Private Function showWfv(rst As Object, dst As Object, s As Object, ss As Object
     
     drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=po.Offset(maxX, 0), cType:=xlColumnClustered, axisTitleX:="风速 (m/s)", _
-            axisTitleY:="频率 (%)"
+            axisTitleY:="频率 (%)", axisFormatY:="0.0"
 
     s.Pc = po.Offset(maxX + 16, 0)
 

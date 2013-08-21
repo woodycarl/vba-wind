@@ -40,12 +40,13 @@ Public Function init(a As Object)
     Set scf = a.Offset(0, 7)
     Set off = a.Offset(0, 8)
     Set uni = a.Offset(0, 9)
-    Set noi = a.Offset(0, 10)
-    Set av = a.Offset(0, 11)
-    Set s = a.Offset(0, 12)
-    Set mi = a.Offset(0, 13)
-    Set ma = a.Offset(0, 14)
-    Set sca = a.Offset(0, 15)
+    Set sca = a.Offset(0, 10)
+    Set noi = a.Offset(0, 11)
+    Set av = a.Offset(0, 12)
+    Set s = a.Offset(0, 13)
+    Set mi = a.Offset(0, 14)
+    Set ma = a.Offset(0, 15)
+    
 End Function
 
 ' id
@@ -174,6 +175,21 @@ Public Property Get Scat() As String
 End Property
 Public Property Let Scat(ByVal v As String)
     sca.Value = v
+    
+    With sca.Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+        xlBetween, Formula1:="风速,风向,气温,气压,h,vol"
+        .IgnoreBlank = True
+        .InCellDropdown = True
+        .InputTitle = ""
+        .ErrorTitle = ""
+        .InputMessage = ""
+        .ErrorMessage = ""
+        .IMEMode = xlIMEModeNoControl
+        .ShowInput = True
+        .ShowError = True
+    End With
 End Property
 
 

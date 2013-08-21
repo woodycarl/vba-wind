@@ -1,15 +1,18 @@
 Attribute VB_Name = "输出风玫瑰图"
+Private arrWr
 
 Function 绘制风玫瑰图(s As Object, rst As Object, dst As Object)
     ' 代表年的全年风向、风能频率分布玫瑰图
 
+    arrWr = Array("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N")
+
     s.Pc.Value = "代表年的全年风向、风能频率分布玫瑰图"
     s.Pc = s.Pc.Offset(1, 0)
     
-    Dim wds As Object: Set wds = s.Sensors("wd")
+    Dim wds As Object: Set wds = s.sensors("风向")
     Dim ad: ad = wds.Items
     
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim av: av = wvs.Items
     
     ' 增加数据透视表
@@ -20,19 +23,21 @@ Function 绘制风玫瑰图(s As Object, rst As Object, dst As Object)
         Dim ssv As Object: Set ssv = av(i)
         Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
         
-
-        showWindrose rst, dst, s, t, pt, ssv, ssd
+        
+        showWindrose rst:=rst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd, _
+            title:="CH" + ssv.channel + " " + CStr(ssv.height) + "m 代表年的全年风向、风能频率分布玫瑰图"
+        
+        showWindroseMs rst:=rst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd
     Next
 
     deleteSheet t
 End Function
 
-
-Private Function showWindrose(rst As Object, dst As Object, s As Object, t As Object, pt As Object, ssv As Object, ssd As Object)
+Private Function showWindrose(rst As Object, dst As Object, s As Object, t As Object, pt As Object, _
+        ssv As Object, ssd As Object, title As String, Optional cTitle As String = "")
     ' 代表年的16个方位扇区不同高度出现风向、风能频率
-    Dim arrWr: arrWr = Array("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N")
+    s.Pc.Value = title
 
-    s.Pc.Value = "CH" + ssv.channel + " " + CStr(ssv.height) + "m 代表年的全年风向、风能频率分布玫瑰图"
     Dim po As Object: Set po = s.Pc.Offset(1, 0)
 
     pt.ClearTable
@@ -90,11 +95,59 @@ Private Function showWindrose(rst As Object, dst As Object, s As Object, t As Ob
         cRangeT.Add dst.Name + "!" + po.Offset(i, 0).Address
     Next i
     
+    Dim cLegend As Variant
+    If cTitle = "" Then
+        cLegend = xlTop
+    Else
+        cLegend = -2
+    End If
     drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
-            dpo:=po.Offset(3, 0), cType:=xlRadar, height:=300, width:=300, axisFormatY:="0"
+            dpo:=po.Offset(3, 0), cType:=xlRadar, height:=300, width:=300, axisFormatY:="0", _
+            cTitle:=cTitle, cLegend:=cLegend
 
-    s.Pc = po.Offset(3 + 23, 0)
+    s.Pc = s.Pc.Offset(0, 19)
 End Function
+
+Private Function showWindroseMs(rst As Object, dst As Object, s As Object, t As Object, pt As Object, _
+        ssv As Object, ssd As Object)
+    Dim tt As Object: Set tt = newSheet("tshowWindroseMs")
+    Dim ptt As Object: Set ptt = newPT(tt, rst.UsedRange.Address, "pttms")
+
+    With ptt.PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    
+    Dim colNum As Integer: colNum = getColNum(rst, "Month")
+
+
+    With ptt.PivotFields("Month")
+        Dim i As Integer
+        For i = 1 To .PivotItems.count
+            If .PivotItems(i).Name <> "" Then
+                Dim trst As Object: Set trst = newSheet("trst")
+                
+                rst.UsedRange.AutoFilter
+                rst.UsedRange.AutoFilter Field:=colNum, Criteria1:="=" & .PivotItems(i).Name, Operator:=xlAnd
+                
+                rangeCopy rst.UsedRange, trst.Cells(1, 1)
+                trst.Columns(1).NumberFormatLocal = "yyyy/m/d hh:mm"
+                
+                
+                showWindrose rst:=trst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd, title:="CH" + ssv.channel, _
+                    cTitle:=.PivotItems(i).Name + "月"
+                
+                rst.UsedRange.AutoFilter
+                deleteSheet trst
+            End If
+        Next i
+    End With
+
+    s.Pc = s.Pc.Offset(27, 1 - s.Pc.Column)
+
+    deleteSheet tt
+End Function
+
 
 
 Private Function mwr(v As Double) As Double

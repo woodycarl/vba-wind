@@ -53,6 +53,17 @@ Function getNewSheetName(n As String) As String
     End If
 End Function
 
+Function deleteAllSheets(pre As String)
+    Dim st As Object
+del:
+    For Each st In Sheets
+        If InStr(1, st.Name, pre, 1) > 0 Then
+            deleteSheet st
+            GoTo del
+        End If
+    Next
+End Function
+
 ' range
 Function rangeCopy(r As Object, po As Object)
     r.Copy
@@ -87,6 +98,25 @@ Function rangeMerge(dr As Object, Optional v As Variant = "", Optional horizonta
         .Merge
         .Value = v
     End With
+End Function
+
+Function getColRange(rst As Object, str As String) As Object
+    Dim maxX As Integer: maxX = rst.UsedRange.Rows.count
+    Dim i: i = getColNum(rst, str)
+    
+    getColRange = rst.Range(rst.Cells(2, i), rst.Cells(maxX, i))
+End Function
+
+Function getColNum(rst As Object, str As String) As Integer
+    Dim maxY As Integer: maxY = rst.UsedRange.Columns.count
+    
+    Dim i As Integer
+    For i = 1 To maxY
+        If rst.Cells(1, i).Value = str Then
+            getColNum = i
+            Exit Function
+        End If
+    Next
 End Function
 
 'pt

@@ -2,8 +2,8 @@ Attribute VB_Name = "相关性"
 
 Sub 计算相关性()
     Dim cats As New Collection
-    cats.Add "wv"
-    ' cats.Add "wd"
+    cats.Add "风速"
+    ' cats.Add "风向"
     
     For Each kc In cats
         Dim cat As String: cat = CStr(kc)
@@ -12,7 +12,7 @@ Sub 计算相关性()
         For Each k1 In Stations
             Dim s1 As Object: Set s1 = Stations(k1)
             Dim st1 As Object: Set st1 = Sheets(s1.Sheet1h)
-            Dim sss1 As Scripting.Dictionary: Set sss1 = s1.Sensors(cat)
+            Dim sss1 As Scripting.Dictionary: Set sss1 = s1.sensors(cat)
     
             For Each kss1 In sss1
                 Dim ss1 As Object: Set ss1 = sss1(kss1)
@@ -23,7 +23,7 @@ Sub 计算相关性()
                 For Each k2 In Stations
                     Dim s2 As Object: Set s2 = Stations(k2)
                     Dim st2 As Object: Set st2 = Sheets(s2.Sheet1h)
-                    Dim sss2 As Scripting.Dictionary: Set sss2 = s2.Sensors(cat)
+                    Dim sss2 As Scripting.Dictionary: Set sss2 = s2.sensors(cat)
 
                     For Each kss2 In sss2
                         Dim ss2 As Object: Set ss2 = sss2(kss2)
@@ -35,8 +35,8 @@ Sub 计算相关性()
     
                             Dim poy As Integer: poy = (indexj + CInt(ss2.channel) - 1) * oConfig.ray + 1
 
-                            Dim range1 As Object: Set range1 = Range(arrCol(CInt(ss1.channel)))
-                            Dim range2 As Object: Set range2 = Range(arrCol(CInt(ss2.channel)))
+                            Dim range1 As Object: Set range1 = Range(arrCol(CInt(ss1.channel))) ' columns(ss.avg)
+                            Dim range2 As Object: Set range2 = Range(arrCol(CInt(ss2.channel))) ' ..
 
                             'Set range1 = st1.Range(st1.Cells(2, ss1.Avg).Address + ":" + st1.Cells(st1.UsedRange.Rows.Count, ss1.Avg).Address)
                             'Set range2 = st2.Range(st2.Cells(2, ss2.Avg).Address + ":" + st2.Cells(st2.UsedRange.Rows.Count, ss2.Avg).Address)
@@ -67,7 +67,7 @@ Sub 计算相关性()
                             ra.Intercept = Application.WorksheetFunction.Intercept(range1, range2)
 
                             Dim r As Object: Set r = Range(arrCol(CInt(ss1.channel)) + "," + arrCol(CInt(ss2.channel)))
-
+                            ' columns(1)
                             Dim chartL As Object: Set chartL = addLinestChart(r, st1)
                             
                             chartL.Parent.Cut

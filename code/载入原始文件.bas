@@ -1,23 +1,17 @@
 Attribute VB_Name = "载入原始文件"
 ' 打开文件选择对话框
-' 选择文件后自动导入,并生成以raw开头的表
+' 选择文件后自动导入,并生成以raw@开头的表
 
-Private Const cfp As String = "F1" ' 用于存放文件名的单元格编号
-Private Const cfpn As String = "E1" ' 提示
-Private Const preRaw As String = "raw" ' 表名前缀
+Private Const cfp    As String = "F1"   ' 用于存放文件名的单元格编号
+Private Const cfpn   As String = "E1"   ' 提示
+Private Const preRaw As String = "raw@" ' 表名前缀
 
 Sub 选择文件()
     系统初始化
-    
-    Dim fd  As Object
-    Dim fp As String
-    Dim sn As String ' sheet name
 
-    
-    Set fd = Application.FileDialog(msoFileDialogFilePicker)
-    With fd
+    With Application.FileDialog(msoFileDialogFilePicker)
         .ButtonName = "打开"
-        .Title = "Choose Data File"
+        .title = "选择数据文件"
         .AllowMultiSelect = True
         .Filters.Clear
         .Filters.Add "All", "*.*"
@@ -27,20 +21,19 @@ Sub 选择文件()
         .Show
         
         For Each f In .SelectedItems
-            fp = CStr(f)
+            Dim fp As String: fp = CStr(f)
             
-            delExistRaw fp      ' 删除已导入的相同文件
-            sn = newRawName(1)  ' 生成新raw sheet名, 从1开始命名
+            delExistRaw fp ' 删除已导入的相同文件
+            Dim sn As String: sn = newRawName(1) ' 生成新raw sheet名, 从1开始命名
             
             loadData fp, sn
         Next
     End With
-    
 End Sub
 
 Private Function loadData(path As String, SheetName As String)
-    Dim fs As Object
-    Set fs = ActiveSheet
+    Dim fs As Object: Set fs = ActiveSheet
+    
     ' open in tmp file, move to oWB
     Workbooks.OpenText fileName:=path, _
         Origin:=936, StartRow:=1, DataType:=xlDelimited, TextQualifier:= _
@@ -59,20 +52,16 @@ Private Function loadData(path As String, SheetName As String)
 End Function
 
 Private Function delExistRaw(path As String)
-    Application.DisplayAlerts = False
-    
-    Dim s
+    Dim st As Object
 del:
-    For Each s In Sheets
-        If InStr(1, s.Name, preRaw, 1) > 0 Then
-            If s.Range(cfp) = path Then
-                s.Delete
+    For Each st In Sheets
+        If InStr(1, st.Name, preRaw, 1) > 0 Then
+            If st.Range(cfp) = path Then
+                deleteSheet st
                 GoTo del
             End If
         End If
     Next
-    
-    Application.DisplayAlerts = True
 End Function
 
 Private Function newRawName(i As Integer) As String
@@ -84,17 +73,6 @@ Private Function newRawName(i As Integer) As String
 End Function
 
 Sub 移除原始数据()
-    Application.DisplayAlerts = False
-    
-    Dim st
-del:
-    For Each s In Sheets
-        If InStr(1, st.Name, preRaw, 1) > 0 Then
-            st.Delete
-            GoTo del
-        End If
-    Next
-    
-    Application.DisplayAlerts = True
+    deleteAllSheets preRaw
 End Sub
 

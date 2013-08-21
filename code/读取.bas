@@ -23,6 +23,7 @@ Sub 读取数据()
         
         deleteZero stn:=s.Sheet1h, s:=s
         deleteZero stn:=s.Sheet10m, s:=s
+        
     Next
 End Sub
 Private Function init()
@@ -55,7 +56,7 @@ Private Function deleteZero(stn As String, s As Object)
         
         st.UsedRange.AutoFilter
         
-        Dim wvs As Object: Set wvs = s.Sensors("wv")
+        Dim wvs As Object: Set wvs = s.sensors("风速")
         Dim a: a = wvs.Items
         For j = 0 To wvs.count - 1
             Dim ss As Object: Set ss = a(j)
@@ -234,7 +235,6 @@ Private Function formatYMDH(v As Double) As String
 End Function
 
 
-
 Function sensorClassfy(s As Object)
     Dim k, ss As Object
     For Each k In s.sensorsR
@@ -248,7 +248,7 @@ Function sensorClassfy(s As Object)
                     ss.Units = "m/s"
                 End If
                 
-                ss.Scat = "wv"
+                ss.Scat = "风速" '"wv"
             Case "deg", "Degress", "Degrees F", "F"
 
                 If ss.Units = "Degrees F" Or ss.Units = "F" Then
@@ -257,13 +257,13 @@ Function sensorClassfy(s As Object)
                 End If
                 ss.Units = "deg"
                 
-                ss.Scat = "wd"
+                ss.Scat = "风向" '"wd"
             Case "Volts", "v"
                 ss.Scat = "vol"
             Case "%RH"
                 ss.Scat = "h"
             Case "C", "Degrees F", "F"
-                ss.Scat = "t"
+                ss.Scat = "气温" '"t"
             Case "kPa", "mb", "mB", "MB"
 
                 If ss.Units = "mb" Or ss.Units = "mB" Or ss.Units = "MB" Then
@@ -272,7 +272,7 @@ Function sensorClassfy(s As Object)
                     ss.Units = "kPa"
                 End If
                 
-                ss.Scat = "p"
+                ss.Scat = "气压" '"p"
         End Select
     Next
 End Function
@@ -310,3 +310,36 @@ Private Function getAdjustRange(sn As String, ss As Object) As Object
     
     Set getAdjustRange = r
 End Function
+
+'Latitude    N 038?11.591'
+'Latitude    S 028? 54.473'
+'Latitude    N 39?16.336?
+'Latitude    N 029 36.282'
+'Latitude    N 000?00.000'
+'Latitude    N 000 00.000'
+'Latitude
+'Latitude    0S
+'Latitude    374027N
+Function adjustLL(str As String) As String
+    Dim reNSS As Object: Set reNSS = CreateObject("vbscript.regexp")
+    reNSS.Pattern = "(\d*)(N|W|S|E)\s*(\d*)[\?\s]*([\d\.]*)['\?]*"
+    
+    Set mymatches = reNSS.Execute(str)
+    If mymatches.count > 0 Then
+        Set mymatch = mymatches(0).SubMatches
+
+        If mymatch.count >= 1 Then
+            If mymatch(0) <> "" Then
+                adjustLL = "not match:" + str
+            
+            Else
+                adjustLL = mymatch(1) + " " + mymatch(2) + "°" + mymatch(3) + "'"
+            
+            End If
+        End If
+    Else
+        adjustLL = "not match:" + str
+    End If
+
+End Function
+

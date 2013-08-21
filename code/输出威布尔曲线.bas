@@ -9,7 +9,7 @@ Function 绘制威布尔曲线(s As Object, rst As Object, dst As Object)
     Dim t As Object: Set t = newSheet("tcalweibull")
     Dim pt As Object: Set pt = newPT(t, s.dataRange, "pt")
     
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)

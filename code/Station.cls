@@ -101,12 +101,13 @@ Public Function newStation(ByVal s As Object)
     senr.Offset(1, 7).Value = "Scale Factor"
     senr.Offset(1, 8).Value = "Offset"
     senr.Offset(1, 9).Value = "Units"
-    senr.Offset(1, 10).Value = "NotInstalled"
-    senr.Offset(1, 11).Value = "Avg"
-    senr.Offset(1, 12).Value = "Sd"
-    senr.Offset(1, 13).Value = "Min"
-    senr.Offset(1, 14).Value = "Max"
-    senr.Offset(1, 15).Value = "Scat"
+    senr.Offset(1, 10).Value = "传感器类型"
+    senr.Offset(1, 11).Value = "NotInstalled"
+    senr.Offset(1, 12).Value = "Avg"
+    senr.Offset(1, 13).Value = "Sd"
+    senr.Offset(1, 14).Value = "Min"
+    senr.Offset(1, 15).Value = "Max"
+    
     
     ra.Value = "-----Ration Information-----"
     'rav.Value = "风速相关性"
@@ -228,12 +229,12 @@ Public Property Get sensorsR() As Scripting.Dictionary     ' Sensor
 End Property
 
 ' sensors
-Public Function Sensors(c As String) As Scripting.Dictionary
+Public Function sensors(c As String) As Scripting.Dictionary
     Dim i As Integer
     Dim s As Object
     Dim a As Object
     
-    Set Sensors = CreateObject("Scripting.Dictionary")
+    Set sensors = CreateObject("Scripting.Dictionary")
     
     For i = 1 To oConfig.MaxSensorNum
         Set a = senr.Offset(i + 1, 0)
@@ -241,7 +242,7 @@ Public Function Sensors(c As String) As Scripting.Dictionary
             Set s = New sSensor
             s.init a
             If s.Scat = c Then
-                Sensors.Add s.channel, s
+                sensors.Add s.channel, s
             End If
         End If
     Next

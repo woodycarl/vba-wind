@@ -1,62 +1,44 @@
 Attribute VB_Name = "系统"
-Public oWB           As Object
-Public oHome         As Object
-Public oRecord       As Object
-Public oConfig       As Object
+Public oWB          As Object
+Public oHome        As Object
+Public oRecord      As Object
+Public oConfig      As Object
 Public Stations     As New Scripting.Dictionary
 
-Public OutputDir    As String
-
-Public arrCol() As String
+Public OUTPUTDIR    As String
 
 Sub 系统初始化()
     Set oWB = ActiveWorkbook
     Set oHome = oWB.Sheets("首页")
     Set oRecord = oWB.Sheets("记录")
-
     Set oConfig = New Setting
     oConfig.init oWB.Sheets("设置")
     
     Set Stations = Nothing
     
-    OutputDir = oWB.path + "\输出\"
+    OUTPUTDIR = oWB.path + "\输出\"
     
-    '记录初始化
     记录初始化
     
-    Dim sh As Object, s As Station
-    For Each sh In Sheets
-        If InStr(1, sh.Name, "site", 1) > 0 Then
+    Dim st As Object, s As Station
+    For Each st In Sheets
+        If InStr(1, st.Name, "site", 1) > 0 Then
             Set s = New Station
-            s.setSheet sh
+            s.setSheet st
             
             Stations.Add s.id, s
         End If
     Next
-
-    变量初始化
 End Sub
 
-Sub 计算初始化()
-    Set Stations = Nothing
-End Sub
 
-Sub 变量初始化()
-    ReDim arrCol(1 To 16) As String
-    arrCol(1) = "B:B"
-    arrCol(2) = "F:F"
-    arrCol(3) = "J:J"
-    arrCol(4) = "N:N"
-    arrCol(5) = "R:R"
-    arrCol(6) = "V:V"
-    arrCol(7) = "Z:Z"
-    arrCol(8) = "AD:AD"
-    arrCol(9) = "AH:AH"
-    arrCol(10) = "AL:AL"
-    arrCol(11) = "AP:AP"
-    arrCol(12) = "AT:AT"
-    arrCol(13) = "AX:AX"
-    arrCol(14) = "BB:BB"
-    arrCol(15) = "BF:BF"
-    arrCol(16) = "BJ:BJ"
+Sub 移除所有数据()
+    Dim st As Object
+    For Each st In Sheets
+        If Not (InStr(1, st.Name, "首页", 1) > 0 Or _
+                InStr(1, st.Name, "设置", 1) > 0 Or _
+                InStr(1, st.Name, "记录", 1) > 0) Then
+            deleteSheet st
+        End If
+    Next
 End Sub

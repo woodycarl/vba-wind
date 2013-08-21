@@ -49,8 +49,8 @@ Private Function decInfoSDR(rs As Object, s As Object)
                 .ProjectDesc = rs.Cells(i + 4, 2).Value
                 .SiteLocation = rs.Cells(i + 5, 2).Value
                 '.SiteElevation = rs.Cells(i + 6, 2).Value
-                .Latitude = rs.Cells(i + 7, 2).Value
-                .Longitude = rs.Cells(i + 8, 2).Value
+                .Latitude = adjustLL(rs.Cells(i + 7, 2).Value)
+                .Longitude = adjustLL(rs.Cells(i + 8, 2).Value)
                 .TimeOffset = rs.Cells(i + 9, 2).Value
             End With
 

@@ -1,97 +1,55 @@
 Attribute VB_Name = "表1测风塔配置一览表"
 
-Function showInfo(s As Station, ds As Object)
-    Dim maxH As Single
-    
-    ds.Columns("A:A").HorizontalAlignment = xlCenter
-    ds.Columns("B:B").HorizontalAlignment = xlCenter
-    ds.Columns("C:C").HorizontalAlignment = xlCenter
-    
+Function showInfo(s As Object, dst As Object)
+    Dim po As Object: Set po = s.Pc
 
-    ds.Range("A1:C1").Merge
-    ds.Range("A1:C1").Value = s.Site.Site + "测风塔配置一览表"
-    
-    ds.Range("A2").Value = "测风塔"
-    ds.Range("B2:C2").Merge
-    ds.Range("B2:C2").Value = s.Site.Site
-    
-    ds.Range("A3").Value = "地理位置" ' 必要时需要进行转换
-    ds.Range("B3:C3").Merge
-    ds.Range("B3:C3").Value = s.Site.Latitude + "," + s.Site.Longitude
+    twoCol dst, po.Offset(1, 0), "测风塔", s.id
+    twoCol dst, po.Offset(2, 0), "地理位置", s.Site.Latitude + "," + s.Site.Longitude
+    twoCol dst, po.Offset(3, 0), "海拔高度", CStr(s.Site.SiteElevation) + " m"
+    twoCol dst, po.Offset(4, 0), "测风时段", Format(s.StartTime, "yyyy/m/d") + "～" + Format(s.EndTime, "yyyy/m/d")
+    Dim maxH As Double: maxH = Application.WorksheetFunction.max(s.os.Range("G21:G" & 20 + s.sensorsR.count))
+    twoCol dst, po.Offset(5, 0), "塔高", CStr(maxH) + " m"
 
-    ds.Range("A4").Value = "海拔高度"
-    ds.Range("B4:C4").Merge
-    ds.Range("B4:C4").Value = CStr(s.Site.SiteElevation) + " m"
-    
-    ds.Range("A5").Value = "测风时段"
-    ds.Range("B5:C5").Merge
-    ds.Range("B5:C5").Value = "start～end" ' 在生成data后写入
-    
-    ds.Range("A6").Value = "塔高"
-    ds.Range("B6:C6").Merge
-    ds.Range("B6:C6").Value = "70 m" ' 求取height最大值
-    
-    ' sensor 分类
-    ds.Range("A7").Value = "信道"
-    ds.Range("B7").Value = "安装高度 (m)"
-    ds.Range("C7").Value = "观测项目"
-    
-    Dim wv As New Scripting.Dictionary
-    Dim wd As New Scripting.Dictionary
-    Dim p As New Scripting.Dictionary
-    Dim t As New Scripting.Dictionary
-    Dim h As New Scripting.Dictionary
-    Dim vol As New Scripting.Dictionary
+    po.Offset(6, 0).Value = "信道"
+    po.Offset(6, 1).Value = "安装高度 (m)"
+    po.Offset(6, 2).Value = "观测项目"
 
-    Dim ss As Sensor
-    Dim i As Integer
-    i = 8
-    For Each Key In s.sensorsR.Keys
-        Set ss = s.sensorsR(Key)
-        
-        If ss.height > maxH Then
-            maxH = ss.height
-        End If
-        
-        Select Case ss.Units
-            Case "m/s", "mph"
-                wv.Add ss.channel, ss
+    Dim i As Integer: i = 7
+    Dim sensors: Set sensors = s.sensorsR
+    For Each k In sensors
+        Dim ss As Object: Set ss = sensors(k)
 
-                addInfoSensor ds, i, ss.channel, ss.height, "风速 (m/s)"
+        Select Case ss.Scat
+            Case "风速"
+                addInfoSensor po.Offset(i, 0), ss, "风速 (m/s)"
                 i = i + 1
-            Case "deg", "Degrees"
-                wd.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.height, "风向 (度)"
+            Case "风向"
+                addInfoSensor po.Offset(i, 0), ss, "风向 (度)"
                 i = i + 1
-            Case "Volts", "v"
-                vol.Add ss.channel, ss
-            Case "%RH"
-                h.Add ss.channel, ss
-            Case "C", "Degrees F"
-                t.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.height, "气温 (℃)"
+            Case "气温"
+                addInfoSensor po.Offset(i, 0), ss, "气温 (℃)"
                 i = i + 1
-            Case "kPa", "mb", "mB"
-                p.Add ss.channel, ss
-                addInfoSensor ds, i, ss.channel, ss.height, "气压 (kpa)"
+            Case "气压"
+                addInfoSensor po.Offset(i, 0), ss, "气压 (kpa)"
                 i = i + 1
         End Select
-        
     Next
     
-    ds.Range("B6:C6").Value = CStr(maxH) + " m"
+    rangeMerge dr:=dst.Range(po, po.Offset(0, 2)), v:=s.id + "测风塔配置一览表"
     
-    ds.Columns("A:A").EntireColumn.AutoFit
-    ds.Columns("B:B").ColumnWidth = 16
-    ds.Columns("C:C").ColumnWidth = 15
-    
-    ' ds.Name = "info-" + s.Site.Site
-
+    s.Pc = s.Pc.Offset(i + 2, 0)
 End Function
 
-Function addInfoSensor(ds As Object, i As Integer, c As String, h As Single, t As String)
-    ds.Range("A" + CStr(i)).Value = "CH" + c
-    ds.Range("B" + CStr(i)).Value = h
-    ds.Range("C" + CStr(i)).Value = t
+Private Function twoCol(dst As Object, po As Object, t As Variant, v As Variant)
+    po.Value = t
+    rangeMerge dr:=dst.Range(po.Offset(0, 1), po.Offset(0, 2)), v:=v
 End Function
+
+Private Function addInfoSensor(po As Object, ss As Object, t As String)
+    po.Value = "CH" + ss.channel
+    po.Offset(0, 1).Value = ss.height
+    po.Offset(0, 2).Value = t
+End Function
+
+
 

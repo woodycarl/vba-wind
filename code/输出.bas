@@ -4,6 +4,9 @@ Sub 生成报表()
     calResult "所有"
 End Sub
 
+Sub 显示表1()
+    calResult "表1"
+End Sub
 Sub 显示平均风速风能()
     calResult "平均风速风能"
 End Sub
@@ -42,6 +45,8 @@ Function calResult(str As String)
         End If
         
         Select Case str
+            Case "表1"
+                showInfo s:=s, dst:=dst
             Case "平均风速风能"
                 计算平均风速风能 s:=s, rst:=rst60, dst:=dst
             Case "风速风能频率"
@@ -55,6 +60,7 @@ Function calResult(str As String)
             Case "湍流强度"
                 计算湍流强度 s:=s, rst10:=rst10, rst60:=rst60, dst:=dst
             Case "所有"
+                showInfo s:=s, dst:=dst
                 计算平均风速风能 s:=s, rst:=rst60, dst:=dst
                 计算风速风能频率 s:=s, rst:=rst60, dst:=dst
                 绘制风玫瑰图 s:=s, rst:=rst60, dst:=dst
@@ -75,7 +81,7 @@ Function initCalResult(s As Object)
     dst.Name = "result" + s.id
     s.Result = dst.Name
 
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     Dim ss As Object
     
@@ -164,7 +170,7 @@ Function initCalResult(s As Object)
     End If
         'windrose
     maxY = rst.UsedRange.Columns.count
-    Dim wds As Object: Set wds = s.Sensors("wd")
+    Dim wds As Object: Set wds = s.sensors("风向")
     Dim ad: ad = wds.Items
     Dim ssd As Object
     For j = 0 To wds.count - 1
@@ -222,8 +228,8 @@ Private Function calAirDensity(s As Object)
         Exit Function
     End If
 
-    Dim ts As Object: Set ts = s.Sensors("t")
-    Dim ps As Object: Set ps = s.Sensors("p")
+    Dim ts As Object: Set ts = s.sensors("气温")
+    Dim ps As Object: Set ps = s.sensors("气压")
     
     Dim st As Object: Set st = Sheets(s.Sheet1h)
     

@@ -67,10 +67,10 @@ Function drawChart(rangeX As String, _
                 .Delete
             ElseIf cLegend = -2 Then
                 .IncludeInLayout = False
-                
-                .left = cLLeft
-                .top = cLTop
-                .width = cLWidth
+
+                .left = 0 'cLLeft
+                .top = 0 'cLTop
+                .width = 1.15 * width 'cLWidth
                 .height = cLHeight
             Else
                 .Position = cLegend
@@ -140,7 +140,6 @@ Function drawChart(rangeX As String, _
         Set drawChart = Nothing
     Else
         Set drawChart = myChart
-        'dst.Paste
     End If
 End Function
 

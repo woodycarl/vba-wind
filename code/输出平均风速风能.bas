@@ -50,7 +50,7 @@ Private Function showAvg(rst As Object, dst As Object, t As Object, s As Object,
         .Position = 1
     End With
 
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
@@ -89,7 +89,8 @@ Private Function showAvg(rst As Object, dst As Object, t As Object, s As Object,
     End If
     
     drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
-            dpo:=po.Offset(2 + wvs.count, 0), cType:=cType, axisTitleX:="月份", axisTitleY:=unit
+            dpo:=po.Offset(2 + wvs.count, 0), cType:=cType, axisTitleX:="月份", axisTitleY:=unit, _
+            axisFormatY:="0.0"
     
     rangeMerge dst.Range(po.Offset(1, 0), po.Offset(1, 1)), "时间 (月)"
     rangeMerge dst.Range(po.Offset(2, 0), po.Offset(wvs.count + 1, 0)), unit
@@ -113,7 +114,7 @@ Private Function showAvgH(rst As Object, dst As Object, t As Object, s As Object
         .Position = 1
     End With
 
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
@@ -146,7 +147,8 @@ Private Function showAvgH(rst As Object, dst As Object, t As Object, s As Object
     Next i
     
     drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
-            dpo:=po.Offset(2 + maxX, 0), axisTitleX:="小时", axisTitleY:=unit
+            dpo:=po.Offset(2 + maxX, 0), axisTitleX:="小时", axisTitleY:=unit, _
+            axisFormatY:="0.0"
 
 
     rangeMerge dst.Range(po.Offset(1, 0), po.Offset(2, 0)), "时间 (小时)"
@@ -168,7 +170,7 @@ Private Function showAvgMHs(rst As Object, dst As Object, s As Object)
         .Position = 1
     End With
 
-    Dim wvs As Object: Set wvs = s.Sensors("wv")
+    Dim wvs As Object: Set wvs = s.sensors("风速")
     Dim a: a = wvs.Items
     For j = 0 To wvs.count - 1
         Dim ss As Object: Set ss = a(j)
@@ -245,7 +247,8 @@ Private Function showAvgMH(rst As Object, dst As Object, s As Object, ss As Obje
     Set c = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=po.Offset(3, 0), axisTitleY:=unitDic("Avg"), height:=280, width:=500, _
             secondaryAxisTitleY:=unitDic("WP"), secondarySeries:=secondarySeries, _
-            cTitle:=month + "月", cLegend:=-2, cLTop:=0, cLLeft:=0, cLHeight:=25, cLWidth:=500)
+            cTitle:=month + "月", cLegend:=-2, cLTop:=0, cLLeft:=0, cLHeight:=25, cLWidth:=500, _
+            axisFormatY:="0.0")
     
     chart2pic myChart:=c, dst:=dst, dpo:=po.Offset(18, 6), resize:=0.4
     
