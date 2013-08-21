@@ -23,11 +23,10 @@ Function 绘制风玫瑰图(s As Object, rst As Object, dst As Object)
         Dim ssv As Object: Set ssv = av(i)
         Dim ssd As Object: Set ssd = getSSbyH(wds, ssv.height)
         
-        
         showWindrose rst:=rst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd, _
             title:="CH" + ssv.channel + " " + CStr(ssv.height) + "m 代表年的全年风向、风能频率分布玫瑰图"
         
-        showWindroseMs rst:=rst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd
+        showWindroseMs rst:=rst, dst:=dst, s:=s, ssv:=ssv, ssd:=ssd
     Next
 
     deleteSheet t
@@ -108,7 +107,7 @@ Private Function showWindrose(rst As Object, dst As Object, s As Object, t As Ob
     s.Pc = s.Pc.Offset(0, 19)
 End Function
 
-Private Function showWindroseMs(rst As Object, dst As Object, s As Object, t As Object, pt As Object, _
+Private Function showWindroseMs(rst As Object, dst As Object, s As Object, _
         ssv As Object, ssd As Object)
     Dim tt As Object: Set tt = newSheet("tshowWindroseMs")
     Dim ptt As Object: Set ptt = newPT(tt, rst.UsedRange.Address, "pttms")
@@ -134,11 +133,17 @@ Private Function showWindroseMs(rst As Object, dst As Object, s As Object, t As 
                 trst.Columns(1).NumberFormatLocal = "yyyy/m/d hh:mm"
                 
                 
+                ' 增加数据透视表
+                Dim t As Object: Set t = newSheet("tshowWindroseMst")
+                Dim pt As Object: Set pt = newPT(t, trst.Name + "!" + trst.UsedRange.Address, "pt")
+                
                 showWindrose rst:=trst, dst:=dst, s:=s, t:=t, pt:=pt, ssv:=ssv, ssd:=ssd, title:="CH" + ssv.channel, _
                     cTitle:=.PivotItems(i).Name + "月"
                 
+                
                 rst.UsedRange.AutoFilter
                 deleteSheet trst
+                deleteSheet t
             End If
         Next i
     End With

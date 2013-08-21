@@ -87,7 +87,7 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     Dim maxX: maxX = dst.UsedRange.Rows.count
 
     Dim rangeH: Set rangeH = dst.Range(dr.Offset(1, 0), dr.Offset(wss.count, 0))
-    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1), dr.Offset(wss.count, 1))
+    
 
     Dim rangeSort: Set rangeSort = dst.Range(dr.Offset(0, 0).Address + ":" + dr.Offset(wss.count, 1).Address)
 
@@ -133,6 +133,7 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
     Dim rangeX As String: rangeX = dst.Name + "!" + rangeH.Address
     Dim cRangeY As New Collection, cRangeT As New Collection
 
+    Dim rangeA: Set rangeA = dst.Range(dr.Offset(1, 1), dr.Offset(wss.count, 1))
     cRangeY.Add rangeA.Address
     cRangeT.Add dst.Name + "!" + dr.Offset(0, 1).Address
     cRangeY.Add rangeT.Address
@@ -144,7 +145,8 @@ Function drawWS(wss As Collection, dst As Object, dr As Object)
             axisTitleY:="风速 (m/s)", cType:=xlXYScatterSmoothNoMarkers, axisFormatY:="0.0")
     
     With myChart
-        With .SeriesCollection(1) '
+        With .SeriesCollection(1)
+            .Values = "=" + dst.Name + "!" + cRangeY(1)
             .MarkerStyle = -4105
             .Format.Line.Visible = msoFalse
         End With

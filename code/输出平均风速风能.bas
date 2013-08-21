@@ -69,6 +69,10 @@ Private Function showAvg(rst As Object, dst As Object, t As Object, s As Object,
     Dim maxX As Integer: maxX = t.UsedRange.Rows.count
     Dim maxY As Integer: maxY = t.UsedRange.Columns.count
     rangeCopy t.Range(t.Cells(2, 1), t.Cells(maxX, maxY)), po.Offset(1, 1)
+    For j = 0 To wvs.count - 1
+        Set ss = a(j)
+        po.Offset(1, 2 + j).Value = CStr(ss.height) + "m"
+    Next
     
     With dst.Range(po.Offset(2, 2), po.Offset(maxX, maxY + 1))
         .NumberFormatLocal = "0.00"
@@ -88,9 +92,16 @@ Private Function showAvg(rst As Object, dst As Object, t As Object, s As Object,
         cType = xlLine
     End If
     
-    drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=po.Offset(2 + wvs.count, 0), cType:=cType, axisTitleX:="月份", axisTitleY:=unit, _
-            axisFormatY:="0.0"
+            axisFormatY:="0.0")
+
+    If cType = xlLine Then
+        For i = 1 To myChart.SeriesCollection.count
+            myChart.SeriesCollection(i).MarkerStyle = -4105
+        Next i
+    End If
     
     rangeMerge dst.Range(po.Offset(1, 0), po.Offset(1, 1)), "时间 (月)"
     rangeMerge dst.Range(po.Offset(2, 0), po.Offset(wvs.count + 1, 0)), unit
@@ -133,6 +144,10 @@ Private Function showAvgH(rst As Object, dst As Object, t As Object, s As Object
     Dim maxX As Integer: maxX = t.UsedRange.Rows.count
     Dim maxY As Integer: maxY = t.UsedRange.Columns.count
     rangeCopy t.UsedRange, po.Offset(2, 0)
+    For j = 0 To wvs.count - 1
+        Set ss = a(j)
+        po.Offset(2, 1 + j).Value = CStr(ss.height) + "m"
+    Next
     
     With dst.Range(po.Offset(3, 1), po.Offset(maxX + 1, maxY - 1))
         .NumberFormatLocal = "0.00"
@@ -146,9 +161,14 @@ Private Function showAvgH(rst As Object, dst As Object, t As Object, s As Object
         cRangeT.Add dst.Name + "!" + po.Offset(2, i).Address
     Next i
     
-    drawChart rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=po.Offset(2 + maxX, 0), axisTitleX:="小时", axisTitleY:=unit, _
-            axisFormatY:="0.0"
+            axisFormatY:="0.0")
+
+    For i = 1 To myChart.SeriesCollection.count
+        myChart.SeriesCollection(i).MarkerStyle = -4105
+    Next i
 
 
     rangeMerge dst.Range(po.Offset(1, 0), po.Offset(2, 0)), "时间 (小时)"
@@ -243,14 +263,18 @@ Private Function showAvgMH(rst As Object, dst As Object, s As Object, ss As Obje
     Next i
     Dim secondarySeries As New Collection
     secondarySeries.Add 2
-    Dim c As Object
-    Set c = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
+    Dim myChart As Object
+    Set myChart = drawChart(rangeX:=rangeX, cRangeY:=cRangeY, cRangeT:=cRangeT, rst:=dst, dst:=dst, _
             dpo:=po.Offset(3, 0), axisTitleY:=unitDic("Avg"), height:=280, width:=500, _
             secondaryAxisTitleY:=unitDic("WP"), secondarySeries:=secondarySeries, _
             cTitle:=month + "月", cLegend:=-2, cLTop:=0, cLLeft:=0, cLHeight:=25, cLWidth:=500, _
             axisFormatY:="0.0")
     
-    chart2pic myChart:=c, dst:=dst, dpo:=po.Offset(18, 6), resize:=0.4
+    For i = 1 To myChart.SeriesCollection.count
+        myChart.SeriesCollection(i).MarkerStyle = -4105
+    Next i
+    
+    chart2pic myChart:=myChart, dst:=dst, dpo:=po.Offset(18, 6), resize:=0.4
     
     po.Value = ""
     po.Offset(1, 0).Value = "平均"

@@ -142,32 +142,6 @@ Function initCalResult(s As Object)
         cellWbF.Formula = "=IF(" + wbA + "<=0,1, ceiling(" + wbA + ",1))"
         cellWbF.AutoFill Destination:=rst.Range(cellWbF.Address + ":" + cellWbL.Address)
     Next
-        ' yyyymmddhh
-    If s.Sheet10m <> "" Then
-        Dim rst10 As Object: Set rst10 = Sheets(s.Sheet10m)
-        maxY10 = rst10.UsedRange.Columns.count
-        maxX10 = rst10.UsedRange.Rows.count
-        
-        rst10.Cells(1, maxY10 + 1).Value = "HH"
-        For j = 2 To maxX10
-            rst10.Cells(j, maxY10 + 1).Value = Format(rst10.Cells(j, 1).Value, "yyyymdhh")
-        Next j
-        
-        maxY10 = rst10.UsedRange.Columns.count
-        For j = 0 To wvs.count - 1
-            Set ss = a(j)
-            
-            Dim cellWt As Object: Set cellWt = rst10.Cells(1, maxY10 + j + 1)
-            Dim cellWtF As Object: Set cellWtF = cellWt.Offset(1, 0)
-            Dim cellWtL As Object: Set cellWtL = cellWt.Offset(maxX10 - 1, 0)
-            Dim wtA As String: wtA = Replace(rst10.Cells(2, ss.avg).Address, "$", "")
-            Dim wts As String: wts = Replace(rst10.Cells(2, ss.Sd).Address, "$", "")
-            
-            cellWt.Value = "CH" + ss.channel + "Wt"
-            cellWtF.Formula = "=" + wts + "/" + wtA
-            cellWtF.AutoFill Destination:=rst10.Range(cellWtF.Address + ":" + cellWtL.Address)
-        Next
-    End If
         'windrose
     maxY = rst.UsedRange.Columns.count
     Dim wds As Object: Set wds = s.sensors("风向")
@@ -213,7 +187,7 @@ Function getSSbyH(sss As Scripting.Dictionary, h As Double) As Object
         
         If ss Is Nothing Then
             Set ss = sst
-        ElseIf Abs(ss.height - height) > Abs(sst.height - height) Then
+        ElseIf Abs(ss.height - height) < Abs(sst.height - height) Then
             Set ss = sst
         End If
     Next
